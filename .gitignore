@@ -9,3 +9,4 @@ svn-book.pdf
 tools
 usr
 pintos/Proj0 Text Files
+pintos/src/utils/pintos-gdb

@@ -56,7 +56,9 @@ sema_init (struct semaphore *sema, unsigned value)
    This function may sleep, so it must not be called within an
    interrupt handler.  This function may be called with
    interrupts disabled, but if it sleeps then the next scheduled
-   thread will probably turn interrupts back on. */
+   thread will probably turn interrupts back on. 
+   
+   Similar to sem_wait() */
 void
 sema_down (struct semaphore *sema) 
 {
@@ -104,7 +106,9 @@ sema_try_down (struct semaphore *sema)
 /* Up or "V" operation on a semaphore.  Increments SEMA's value
    and wakes up one thread of those waiting for SEMA, if any.
 
-   This function may be called from an interrupt handler. */
+   This function may be called from an interrupt handler. 
+   
+   Similar to sem_signal() */
 void
 sema_up (struct semaphore *sema) 
 {

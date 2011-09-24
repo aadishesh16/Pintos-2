@@ -100,15 +100,19 @@ thread_lower_priority (const struct list_elem *a_,
 
 /* Sleeps for approximately TICKS timer ticks.  Interrupts must
    be turned on. */
-/* We need to edit this function!!! */
+/* We need to edit this function!!!
+ * This will require semaphore */
 void
 timer_sleep (int64_t ticks) 
 {
   int64_t start = timer_ticks ();
 
-  ASSERT (intr_get_level () == INTR_ON);
+  ASSERT (intr_get_level () == INTR_ON); // Interrupts must be turned on
+  
+  // this is old code and should be commented out
   while (timer_elapsed (start) < ticks) 
     thread_yield ();
+   
 }
 
 /* Sleeps for approximately MS milliseconds.  Interrupts must be

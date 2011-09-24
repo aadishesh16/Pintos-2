@@ -10,3 +10,6 @@ tools
 usr
 pintos/Proj0 Text Files
 pintos/src/utils/pintos-gdb
+a.out
+bochs-2.4.5.tar.gz
+bochs-2.4.5/

@@ -85,7 +85,8 @@ timer_elapsed (int64_t then)
 }
 
 /* Returns true if thread a has lower priority than thread b,
- * within a list of threads. */
+ * within a list of threads.
+ * (Brian) */
 bool
 thread_lower_priority (const struct list_elem *a_,
                         const struct list_elem *b_,

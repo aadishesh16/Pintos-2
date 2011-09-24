@@ -84,6 +84,19 @@ timer_elapsed (int64_t then)
   return timer_ticks () - then;
 }
 
+/* Returns true if thread a has lower priority than thread b,
+ * within a list of threads. */
+bool
+thread_lower_priority (const struct list_elem *a_,
+                        const struct list_elem *b_,
+                         void *aux UNUSED)
+{
+  const struct thread *a = list_entry (a_, struct thread, elem) ;
+  const struct thread *b = list_entry (b_, struct thread, elem) ;
+
+  return a->priority < b->priority;
+}
+
 /* Sleeps for approximately TICKS timer ticks.  Interrupts must
    be turned on. */
 /* We need to edit this function!!! */

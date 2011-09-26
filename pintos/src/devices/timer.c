@@ -108,10 +108,15 @@ timer_sleep (int64_t ticks)
   int64_t start = timer_ticks ();
 
   ASSERT (intr_get_level () == INTR_ON); // Interrupts must be turned on
-  
+ 
+  struct thread *t = thread_current();
+  struct semaphore *sema = malloc(sizeof(struct semaphore));
+
+  sema_init(sema, 0);
+
   // this is old code and should be commented out
-  while (timer_elapsed (start) < ticks) 
-    thread_yield ();
+  //while (timer_elapsed (start) < ticks) 
+    //thread_yield ();
    
 }
 

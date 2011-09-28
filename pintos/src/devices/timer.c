@@ -117,7 +117,10 @@ timer_sleep (int64_t ticks)
   struct thread *t = thread_current();
   t->wakeup = wakeuptime;
 
+  // remove from read_list
+  // add to waitlist
 
+  // call timter_interupt()
   t->sema.sema_down();
 
   // this is old code and should be commented out
@@ -206,7 +209,7 @@ timer_interrupt (struct intr_frame *args UNUSED)
   // pseudo code
   /* while (waitlist->list_next() != waitlist->list_tail()){
       if (waitlist->t->wakeuptime < ticks){
-        sema_up()
+        t->sema_up()
       }
       waitlist->list_next();
   } */

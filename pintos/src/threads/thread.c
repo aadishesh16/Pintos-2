@@ -206,6 +206,7 @@ thread_create (const char *name, int priority,
 
   intr_set_level (old_level);
 
+  sema_init(sema, 0);
   /* Add to run queue. */
   thread_unblock (t);
 

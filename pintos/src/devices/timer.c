@@ -101,18 +101,24 @@ thread_lower_priority (const struct list_elem *a_,
 /* Sleeps for approximately TICKS timer ticks.  Interrupts must
    be turned on. */
 /* We need to edit this function!!!
- * This will require semaphore */
+   To block the thread, use sema_down */
 void
 timer_sleep (int64_t ticks) 
 {
+  printf("Calling timer_sleep with %d ticks.\n", ticks);
+
   int64_t start = timer_ticks ();
+  int64_t wakeuptime = start + ticks;
+
+  printf("The start time is %d and the wakeuptime is %d.", start, wakeuptime);
 
   ASSERT (intr_get_level () == INTR_ON); // Interrupts must be turned on
  
   struct thread *t = thread_current();
-  struct semaphore *sema = malloc(sizeof(struct semaphore));
+  t->wakeup = wakeuptime;
 
-  sema_init(sema, 0);
+
+  t->sema.sema_down();
 
   // this is old code and should be commented out
   //while (timer_elapsed (start) < ticks) 
@@ -189,11 +195,22 @@ timer_print_stats (void)
 {
   printf ("Timer: %"PRId64" ticks\n", timer_ticks ());
 }
-
+
 /* Timer interrupt handler. */
+// while loop  checking if thread should be woken up in waitlist
+// if their wakeuptime < ticks, they should be woken up
+// use a while to check if threads need to be woken up
 static void
 timer_interrupt (struct intr_frame *args UNUSED)
 {
+  // pseudo code
+  /* while (waitlist->list_next() != waitlist->list_tail()){
+      if (waitlist->t->wakeuptime < ticks){
+        sema_up()
+      }
+      waitlist->list_next();
+  } */
+
   ticks++;
   thread_tick ();
 }

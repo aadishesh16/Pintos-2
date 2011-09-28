@@ -58,7 +58,8 @@ sema_init (struct semaphore *sema, unsigned value)
    interrupts disabled, but if it sleeps then the next scheduled
    thread will probably turn interrupts back on. 
    
-   Similar to sem_wait() */
+   Similar to sem_wait() 
+   Use this as block, use this in timer sleep*/
 void
 sema_down (struct semaphore *sema) 
 {

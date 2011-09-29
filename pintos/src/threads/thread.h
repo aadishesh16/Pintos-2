@@ -85,7 +85,7 @@ struct thread
     // SEMAPHORE HERE SOMEWHERE initalize it to 0 to use it to block this thread
     // 
     /* Owned by thread.c. */
-    struct semaphore *sema = malloc(sizeof(struct semaphore));
+    struct semaphore *sema;
     
     int64_t wakeup;                     // Wakeup time
     tid_t tid;                          /* Thread identifier. */

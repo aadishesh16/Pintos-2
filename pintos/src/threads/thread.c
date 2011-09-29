@@ -24,6 +24,10 @@
    that are ready to run but not actually running. */
 static struct list ready_list;
 
+/* List of processes in THREAD_BLOCKED state, that is, processes
+   that are waiting and are not actually running. */
+static struct list wait_list;
+
 /* List of all processes.  Processes are added to this list
    when they are first scheduled and removed when they exit. */
 static struct list all_list;
@@ -91,6 +95,7 @@ thread_init (void)
 
   lock_init (&tid_lock);
   list_init (&ready_list);
+  list_init (&wait_list);
   list_init (&all_list);
 
   /* Set up a thread structure for the running thread. */
@@ -206,7 +211,9 @@ thread_create (const char *name, int priority,
 
   intr_set_level (old_level);
 
+  sema = malloc(sizeof(struct semaphore));//I think this is right...
   sema_init(sema, 0);
+
   /* Add to run queue. */
   thread_unblock (t);
 

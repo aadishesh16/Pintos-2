@@ -330,6 +330,47 @@ thread_yield (void)
   intr_set_level (old_level);
 }
 
+/* Removes thread from the ready list and places it into the 
+ * wait list. Then it sets the thread status to blocked, and
+ * blocks the thread using a semaphore */
+void thread_wait(struct thread *t)
+{
+  // Add thread to wait lit
+  list_push_back(&wait_list, &t->waitelem);
+  // Remove thread from ready list
+  list_remove(&t->elem);
+  // Set the status of the thread to BLOCKED
+  t->status = THREAD_BLOCKED;
+  // Call sema_down to block the thread
+  sema_down(&t->sema);
+}
+
+/* Checks the wait list to see if any threads are ready to
+ * be woken up. If their wakeup time is less than
+ * ticks, then we will signal the semaphore, put the thread
+ * into the ready list and remove the thread from the
+ * wait list */
+void thread_unwait(int64_t ticks)
+{
+  struct list_elem *e;
+
+  for (e = list_begin(&wait_list); e != list_end (&wait_list); e = list_next (e))
+  {
+    struct thread *t = list_entry (e, struct thread, waitelem);
+    if (t->wakeup < ticks)
+    {
+      // Set thread to READY
+      t->status = THREAD_READY;
+      // Unblocking the thread
+      sema_up(&t->sema);
+      // Pushing thread back into the ready list
+      list_push_back(&ready_list, &t->elem);
+      // Removing thread from the wait list
+      list_remove(&t->waitelem);
+    }
+  }
+}
+
 /* Invoke function 'func' on all threads, passing along 'aux'.
    This function must be called with interrupts off. */
 void

@@ -87,7 +87,6 @@ struct thread
     /* Owned by thread.c. */
     struct semaphore *sema = malloc(sizeof(struct semaphore));
     
-    
     int64_t wakeup;                     // Wakeup time
     tid_t tid;                          /* Thread identifier. */
     enum thread_status status;          /* Thread state. */

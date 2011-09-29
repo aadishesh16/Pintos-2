@@ -335,6 +335,12 @@ thread_yield (void)
  * blocks the thread using a semaphore */
 void thread_wait(struct thread *t)
 {
+  enum intr_level old_level;
+
+  ASSERT (!intr_context());
+
+  old_level = intr_disable();
+
   // Add thread to wait lit
   list_push_back(&wait_list, &t->waitelem);
   // Remove thread from ready list
@@ -343,6 +349,10 @@ void thread_wait(struct thread *t)
   t->status = THREAD_BLOCKED;
   // Call sema_down to block the thread
   sema_down(&t->sema);
+
+  schedule();
+  
+  intr_set_level(old_level);
 }
 
 /* Checks the wait list to see if any threads are ready to
@@ -353,12 +363,14 @@ void thread_wait(struct thread *t)
 void thread_unwait(int64_t ticks)
 {
   struct list_elem *e;
-
+  enum intr_level old_level;
   for (e = list_begin(&wait_list); e != list_end (&wait_list); e = list_next (e))
   {
     struct thread *t = list_entry (e, struct thread, waitelem);
     if (t->wakeup < ticks)
     {
+      old_level = intr_disable();
+
       // Set thread to READY
       t->status = THREAD_READY;
       // Unblocking the thread
@@ -367,6 +379,10 @@ void thread_unwait(int64_t ticks)
       list_push_back(&ready_list, &t->elem);
       // Removing thread from the wait list
       list_remove(&t->waitelem);
+      
+      schedule();
+  
+      intr_set_level(old_level);
     }
   }
 }

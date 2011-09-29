@@ -24,6 +24,11 @@ static int64_t ticks;
    Initialized by timer_calibrate(). */
 static unsigned loops_per_tick;
 
+bool
+thread_lower_priority (const struct list_elem *a_, const struct list_elem *b_,
+                         void *aux UNUSED);
+
+
 static intr_handler_func timer_interrupt;
 static bool too_many_loops (unsigned loops);
 static void busy_wait (int64_t loops);

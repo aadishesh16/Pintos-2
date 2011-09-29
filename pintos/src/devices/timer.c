@@ -105,12 +105,8 @@ thread_lower_priority (const struct list_elem *a_,
 void
 timer_sleep (int64_t ticks) 
 {
-  printf("Calling timer_sleep with %d ticks.\n", ticks);
-
   int64_t start = timer_ticks ();
   int64_t wakeuptime = start + ticks;
-
-  printf("The start time is %d and the wakeuptime is %d.", start, wakeuptime);
 
   ASSERT (intr_get_level () == INTR_ON); // Interrupts must be turned on
  

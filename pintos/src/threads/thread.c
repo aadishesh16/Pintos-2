@@ -335,6 +335,7 @@ thread_yield (void)
  * blocks the thread using a semaphore */
 void thread_wait(struct thread *t)
 {
+  //printf("Entering thread_wait\n\n\n");
   // Add thread to wait lit
   list_push_back(&wait_list, &t->waitelem);
   // Remove thread from ready list
@@ -343,6 +344,7 @@ void thread_wait(struct thread *t)
   t->status = THREAD_BLOCKED;
   // Call sema_down to block the thread
   sema_down(&t->sema);
+  //printf("Leaving thread_wait\n\n\n");
 }
 
 /* Checks the wait list to see if any threads are ready to
@@ -352,6 +354,7 @@ void thread_wait(struct thread *t)
  * wait list */
 void thread_unwait(int64_t ticks)
 {
+  //printf("Entering thread_unwait\n\n\n");
   struct list_elem *e;
 
   for (e = list_begin(&wait_list); e != list_end (&wait_list); e = list_next (e))
@@ -369,6 +372,7 @@ void thread_unwait(int64_t ticks)
       list_remove(&t->waitelem);
     }
   }
+  //printf("Leaving thread_unwait\n\n\n");
 }
 
 /* Invoke function 'func' on all threads, passing along 'aux'.

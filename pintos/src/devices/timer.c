@@ -125,7 +125,7 @@ timer_sleep (int64_t ticks)
   sema_down(t->sema);
 
   // call timer_interrupt
-  timer_interrupt(); //does this get a parameter??
+  timer_interrupt(NULL); //does this get a parameter??
 
   // this is old code and should be commented out
   //while (timer_elapsed (start) < ticks) 

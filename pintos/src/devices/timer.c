@@ -117,11 +117,15 @@ timer_sleep (int64_t ticks)
   struct thread *t = thread_current();
   t->wakeup = wakeuptime;
 
-  // remove from read_list
   // add to waitlist
+  list_push_back(&wait_list, &t->waitelem);
+  //remove from ready_list
+  list_remove(&t->elem);
+  //blocks the thread by waiting on the semaphore
+  sema_down(&t->sema);
 
-  // call timter_interupt()
-  t->sema.sema_down();
+  // call timer_interrupt
+  timer_interrupt(); //does this get a parameter??
 
   // this is old code and should be commented out
   //while (timer_elapsed (start) < ticks) 
@@ -206,14 +210,22 @@ timer_print_stats (void)
 static void
 timer_interrupt (struct intr_frame *args UNUSED)
 {
-  // pseudo code
-  /* while (waitlist->list_next() != waitlist->list_tail()){
-      if (waitlist->t->wakeuptime < ticks){
-        t->sema_up()
-      }
-      waitlist->list_next();
-  } */
+  //adapted from list.h comment
+  struct list_elem *e;
 
+  for (e = list_begin (&foo_list); e != list_end (&foo_list); e = list_next (e))
+  {
+    struct thread *t = list_entry (e, struct thread, waitelem);
+    //check if wakeup time < ticks
+    if(t->wakeuptime < ticks) {
+      //signal the semaphore
+      sema_up(&t->sema);
+      //push the thread onto the ready list
+      list_push_back(&ready_list, &t->elem);
+      //remove the thread from the wait list
+      list_remove(&t->waitelem);
+    }
+  }
   ticks++;
   thread_tick ();
 }

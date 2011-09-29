@@ -211,8 +211,8 @@ thread_create (const char *name, int priority,
 
   intr_set_level (old_level);
 
-  sema = malloc(sizeof(struct semaphore));//I think this is right...
-  sema_init(sema, 0);
+  t->sema = malloc(sizeof(struct semaphore));//I think this is right...
+  sema_init(t->sema, 0);
 
   /* Add to run queue. */
   thread_unblock (t);

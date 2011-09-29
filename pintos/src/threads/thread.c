@@ -362,6 +362,7 @@ void thread_wait(struct thread *t)
  * wait list */
 void thread_unwait(int64_t ticks)
 {
+  //printf("Entering thread_unwait\n\n\n");
   struct list_elem *e;
   enum intr_level old_level;
   for (e = list_begin(&wait_list); e != list_end (&wait_list); e = list_next (e))
@@ -385,6 +386,7 @@ void thread_unwait(int64_t ticks)
       intr_set_level(old_level);
     }
   }
+  //printf("Leaving thread_unwait\n\n\n");
 }
 
 /* Invoke function 'func' on all threads, passing along 'aux'.

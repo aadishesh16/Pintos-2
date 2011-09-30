@@ -4,6 +4,7 @@
 #include <debug.h>
 #include <list.h>
 #include <stdint.h>
+#include "/threads/synch.h"
 
 /* States in a thread's life cycle. */
 enum thread_status
@@ -18,10 +19,6 @@ enum thread_status
    You can redefine this to whatever type you like. */
 typedef int tid_t;
 #define TID_ERROR ((tid_t) -1)          /* Error value for tid_t. */
-
-/* Wait List
- */
-struct list wait_list;
 
 /* Thread priorities. */
 #define PRI_MIN 0                       /* Lowest priority. */
@@ -86,10 +83,8 @@ struct list wait_list;
    blocked state is on a semaphore wait list. */
 struct thread
   {
-    // SEMAPHORE HERE SOMEWHERE initalize it to 0 to use it to block this thread
-    // 
     /* Owned by thread.c. */
-    struct semaphore *sema;
+    struct semaphore sema;
     
     int64_t wakeup;                     // Wakeup time
     tid_t tid;                          /* Thread identifier. */
@@ -136,8 +131,6 @@ const char *thread_name (void);
 
 void thread_exit (void) NO_RETURN;
 void thread_yield (void);
-void thread_wait(struct thread *);
-void thread_unwait(int64_t);
 
 /* Performs some operation on thread t, given auxiliary data AUX. */
 typedef void thread_action_func (struct thread *t, void *aux);

@@ -17,6 +17,9 @@
 #error TIMER_FREQ <= 1000 recommended
 #endif
 
+/* Wait List */
+static struct list wait_list;
+
 /* Number of timer ticks since OS booted. */
 static int64_t ticks;
 
@@ -42,6 +45,7 @@ timer_init (void)
 {
   pit_configure_channel (0, 2, TIMER_FREQ);
   intr_register_ext (0x20, timer_interrupt, "8254 Timer");
+  list_init(&wait_list);
 }
 
 /* Calibrates loops_per_tick, used to implement brief delays. */
@@ -115,17 +119,16 @@ timer_sleep (int64_t ticks)
 
   ASSERT (intr_get_level () == INTR_ON); // Interrupts must be turned on
  
+  intr_disable();
   struct thread *t = thread_current();
   t->wakeup = wakeuptime;
 
-  // Add thread to wait lit
+  // Add thread to wait list
   list_push_back(&wait_list, &t->waitelem);
-  // Call sema_down to block the thread
-  if (t->sema == NULL) {
-    t->sema = malloc(sizeof(struct semaphore));//I think this is right...
-    sema_init(t->sema, 0);
-  }
-  sema_down(t->sema);
+
+  sema_down(&t->sema);
+
+  intr_enable();
 
   // this is old code and should be commented out
   //while (timer_elapsed (start) < ticks) 
@@ -216,10 +219,10 @@ timer_interrupt (struct intr_frame *args UNUSED)
   for (e = list_begin(&wait_list); e != list_end (&wait_list); e = list_next (e))
   {
     struct thread *t = list_entry (e, struct thread, waitelem);
-    if (t->wakeup < ticks)
+    if (t->wakeup < timer_ticks())
     {
       // Unblocking the thread
-      sema_up(t->sema);
+      sema_up(&t->sema);
       // Removing thread from the wait list
       list_remove(&t->waitelem);
     }

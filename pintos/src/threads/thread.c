@@ -91,7 +91,6 @@ thread_init (void)
 
   lock_init (&tid_lock);
   list_init (&ready_list);
-  list_init (&wait_list);
   list_init (&all_list);
 
   /* Set up a thread structure for the running thread. */
@@ -99,8 +98,6 @@ thread_init (void)
   init_thread (initial_thread, "main", PRI_DEFAULT);
   initial_thread->status = THREAD_RUNNING;
   initial_thread->tid = allocate_tid ();
-  // Initalize semaphore
-  sema_init(&initial_thread->sema, 0);
 }
 
 /* Starts preemptive thread scheduling by enabling interrupts.
@@ -206,11 +203,6 @@ thread_create (const char *name, int priority,
   sf = alloc_frame (t, sizeof *sf);
   sf->eip = switch_entry;
   sf->ebp = 0;
-
-  if(t->sema == NULL) {
-    t->sema = malloc(sizeof(struct semaphore));//I think this is right...
-    sema_init(t->sema, 0);
-  }
 
   intr_set_level (old_level);
   /* Add to run queue. */
@@ -476,6 +468,9 @@ init_thread (struct thread *t, const char *name, int priority)
   t->stack = (uint8_t *) t + PGSIZE;
   t->priority = priority;
   t->magic = THREAD_MAGIC;
+
+  // Initialize semaphore
+  sema_init(&t->sema, 0);
   list_push_back (&all_list, &t->allelem);
 }
 

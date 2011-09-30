@@ -204,11 +204,23 @@ timer_print_stats (void)
 static void
 timer_interrupt (struct intr_frame *args UNUSED)
 {
-  
-  //see comment for thread_unwait in thread.c
-  thread_unwait(ticks); //before or after we increment ticks??
-
   ticks++;
+  //thread_unwait(ticks);
+
+  struct list_elem *e;
+  for (e = list_begin(&wait_list); e != list_end (&wait_list); e = list_next (e))
+  {
+    struct thread *t = list_entry (e, struct thread, waitelem);
+    if (t->wakeup < ticks)
+    {
+      // Unblocking the thread
+      sema_up(&t->sema);
+      // Removing thread from the wait list
+      list_remove(&t->waitelem);
+      
+    }
+  }
+
   thread_tick ();
 }
 

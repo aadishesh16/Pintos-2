@@ -119,7 +119,12 @@ timer_sleep (int64_t ticks)
   t->wakeup = wakeuptime;
 
   // see thread_wait comment in thread.c
-  thread_wait(t);
+  //thread_wait(t);
+
+  // Add thread to wait lit
+  list_push_back(&wait_list, &t->waitelem);
+  // Call sema_down to block the thread
+  sema_down(&t->sema);
 
   // this is old code and should be commented out
   //while (timer_elapsed (start) < ticks) 

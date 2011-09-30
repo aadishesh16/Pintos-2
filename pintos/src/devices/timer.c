@@ -121,7 +121,11 @@ timer_sleep (int64_t ticks)
   // Add thread to wait lit
   list_push_back(&wait_list, &t->waitelem);
   // Call sema_down to block the thread
-  sema_down(&t->sema);
+  if (t->sema == NULL) {
+    t->sema = malloc(sizeof(struct semaphore));//I think this is right...
+    sema_init(t->sema, 0);
+  }
+  sema_down(t->sema);
 
   // this is old code and should be commented out
   //while (timer_elapsed (start) < ticks) 
@@ -215,7 +219,7 @@ timer_interrupt (struct intr_frame *args UNUSED)
     if (t->wakeup < ticks)
     {
       // Unblocking the thread
-      sema_up(&t->sema);
+      sema_up(t->sema);
       // Removing thread from the wait list
       list_remove(&t->waitelem);
     }

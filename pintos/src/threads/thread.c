@@ -103,6 +103,7 @@ thread_init (void)
   init_thread (initial_thread, "main", PRI_DEFAULT);
   initial_thread->status = THREAD_RUNNING;
   initial_thread->tid = allocate_tid ();
+  sema_init(&initial_thread->sema, 0);
 }
 
 /* Starts preemptive thread scheduling by enabling interrupts.
@@ -211,8 +212,8 @@ thread_create (const char *name, int priority,
 
   intr_set_level (old_level);
 
-  t->sema = malloc(sizeof(struct semaphore));//I think this is right...
-  sema_init(t->sema, 0);
+  //t->sema = malloc(sizeof(struct semaphore));//I think this is right...
+  //sema_init(&t->sema, 0);
 
   /* Add to run queue. */
   thread_unblock (t);

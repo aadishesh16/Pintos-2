@@ -343,10 +343,6 @@ void thread_wait(struct thread *t)
 
   // Add thread to wait lit
   list_push_back(&wait_list, &t->waitelem);
-  // Remove thread from ready list
-  list_remove(&t->elem);
-  // Set the status of the thread to BLOCKED
-  t->status = THREAD_BLOCKED;
   // Call sema_down to block the thread
   sema_down(&t->sema);
 
@@ -362,31 +358,19 @@ void thread_wait(struct thread *t)
  * wait list */
 void thread_unwait(int64_t ticks)
 {
-  //printf("Entering thread_unwait\n\n\n");
   struct list_elem *e;
-  enum intr_level old_level;
   for (e = list_begin(&wait_list); e != list_end (&wait_list); e = list_next (e))
   {
     struct thread *t = list_entry (e, struct thread, waitelem);
     if (t->wakeup < ticks)
     {
-      old_level = intr_disable();
-
-      // Set thread to READY
-      t->status = THREAD_READY;
       // Unblocking the thread
       sema_up(&t->sema);
-      // Pushing thread back into the ready list
-      list_push_back(&ready_list, &t->elem);
       // Removing thread from the wait list
       list_remove(&t->waitelem);
       
-      schedule();
-  
-      intr_set_level(old_level);
     }
   }
-  //printf("Leaving thread_unwait\n\n\n");
 }
 
 /* Invoke function 'func' on all threads, passing along 'aux'.

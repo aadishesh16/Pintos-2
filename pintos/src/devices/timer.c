@@ -121,9 +121,6 @@ timer_sleep (int64_t ticks)
   // see thread_wait comment in thread.c
   thread_wait(t);
 
-  // call timer_interrupt
-  timer_interrupt(NULL); //does this get a parameter??
-
   // this is old code and should be commented out
   //while (timer_elapsed (start) < ticks) 
     //thread_yield ();

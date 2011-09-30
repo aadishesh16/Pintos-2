@@ -118,9 +118,6 @@ timer_sleep (int64_t ticks)
   struct thread *t = thread_current();
   t->wakeup = wakeuptime;
 
-  // see thread_wait comment in thread.c
-  //thread_wait(t);
-
   // Add thread to wait lit
   list_push_back(&wait_list, &t->waitelem);
   // Call sema_down to block the thread
@@ -210,7 +207,6 @@ timer_interrupt (struct intr_frame *args UNUSED)
 {
   ticks++;
   thread_tick ();
-  //thread_unwait(ticks);
   
   struct list_elem *e;
   for (e = list_begin(&wait_list); e != list_end (&wait_list); e = list_next (e))

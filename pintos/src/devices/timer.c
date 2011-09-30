@@ -110,7 +110,6 @@ thread_lower_priority (const struct list_elem *a_,
 void
 timer_sleep (int64_t ticks) 
 {
-  //I put this here to make a merge conflict - Carlos
   int64_t start = timer_ticks ();
   int64_t wakeuptime = start + ticks;
 
@@ -127,7 +126,6 @@ timer_sleep (int64_t ticks)
     sema_init(t->sema, 0);
   }
   sema_down(t->sema);
-  // Trying to use the merge tool
 
   // this is old code and should be commented out
   //while (timer_elapsed (start) < ticks) 

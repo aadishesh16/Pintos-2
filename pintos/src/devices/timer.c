@@ -126,6 +126,7 @@ timer_sleep (int64_t ticks)
     sema_init(t->sema, 0);
   }
   sema_down(t->sema);
+  // Trying to use the merge tool
 
   // this is old code and should be commented out
   //while (timer_elapsed (start) < ticks) 

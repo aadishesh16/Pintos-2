@@ -129,7 +129,6 @@ timer_sleep (int64_t ticks)
   // this is old code and should be commented out
   //while (timer_elapsed (start) < ticks) 
     //thread_yield ();
-   
 }
 
 /* Sleeps for approximately MS milliseconds.  Interrupts must be
@@ -212,7 +211,7 @@ timer_interrupt (struct intr_frame *args UNUSED)
   ticks++;
   thread_tick ();
   //thread_unwait(ticks);
-
+  
   struct list_elem *e;
   for (e = list_begin(&wait_list); e != list_end (&wait_list); e = list_next (e))
   {
@@ -223,7 +222,6 @@ timer_interrupt (struct intr_frame *args UNUSED)
       sema_up(&t->sema);
       // Removing thread from the wait list
       list_remove(&t->waitelem);
-      
     }
   }
 }

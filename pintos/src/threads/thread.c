@@ -412,8 +412,6 @@ thread_yield (void)
   else {
     list_push_back (&ready_list, &cur->elem);
   }
-  //if (cur != idle_thread) 
-  //  list_push_back (&ready_list, &cur->elem);
   cur->status = THREAD_READY;
   schedule ();
   intr_set_level (old_level);
@@ -441,6 +439,8 @@ void
 thread_set_priority (int new_priority) 
 {
   thread_current ()->priority = new_priority;
+
+  thread_yield_to_higher_priority();
 }
 
 /* Returns the current thread’s priority. In the presence of priority donation, returns the highest (donated) priority. You need not provide any interface to allow a thread to directly modify other threads’ priorities. The priority scheduler is not used in any later project. */

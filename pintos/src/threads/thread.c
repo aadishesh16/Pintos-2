@@ -323,7 +323,7 @@ thread_unblock (struct thread *t)
   ASSERT (t->status == THREAD_BLOCKED);
 
   // this will insert the thread into the ready list
-  // by priority
+  // by priority provided it is not the idle thread
   if (t != idle_thread ){
     list_insert_ordered(&ready_list, &t->elem, thread_higher_priority, NULL);
   }

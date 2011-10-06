@@ -412,8 +412,6 @@ thread_yield (void)
   else {
     list_push_back (&ready_list, &cur->elem);
   }
-  //if (cur != idle_thread) 
-  //  list_push_back (&ready_list, &cur->elem);
   cur->status = THREAD_READY;
   schedule ();
   intr_set_level (old_level);

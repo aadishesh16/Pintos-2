@@ -72,6 +72,11 @@ void thread_schedule_tail (struct thread *prev);
 static tid_t allocate_tid (void);
 
 bool
+thread_higher_priority (const struct list_elem *a_,
+                        const struct list_elem *b_,
+                         void *aux UNUSED);
+
+bool
 thread_lower_priority (const struct list_elem *a_,
                         const struct list_elem *b_,
                          void *aux UNUSED);
@@ -109,6 +114,21 @@ thread_init (void)
 }
 
 
+/* Returns true if thread a has higher priority than thread b,
+ * within a list of threads.
+ * (Brian) */
+bool
+thread_higher_priority (const struct list_elem *a_,
+                        const struct list_elem *b_,
+                         void *aux UNUSED)
+{
+  const struct thread *a = list_entry (a_, struct thread, elem) ;
+  const struct thread *b = list_entry (b_, struct thread, elem) ;
+
+  return a->priority > b->priority;
+}
+
+
 /* Returns true if thread a has lower priority than thread b,
  * within a list of threads.
  * (Brian) */
@@ -122,6 +142,7 @@ thread_lower_priority (const struct list_elem *a_,
 
   return a->priority < b->priority;
 }
+
 
 
 /* If the ready list contains a thread with a higher priority,
@@ -282,7 +303,15 @@ thread_block (void)
    This function does not preempt the running thread.  This can
    be important: if the caller had disabled interrupts itself,
    it may expect that it can atomically unblock a thread and
-   update other data. */
+   update other data.
+   
+   We have to check if t is not the idle thread
+   Then if it isn't, we insert it into the list ordered
+   else we call list_push_back
+
+   At the end we must check if threads piority is greater
+   than running thread, if that's true call thread_yield()
+   */
 void
 thread_unblock (struct thread *t) 
 {
@@ -292,10 +321,25 @@ thread_unblock (struct thread *t)
 
   old_level = intr_disable ();
   ASSERT (t->status == THREAD_BLOCKED);
-  list_push_back (&ready_list, &t->elem);
+
+  // this will insert the thread into the ready list
+  // by priority
+  if (t != idle_thread ){
+    list_insert_ordered(&ready_list, &t->elem, thread_higher_priority, NULL);
+  }
+  else {
+    list_push_back (&ready_list, &t->elem);
+  }
   t->status = THREAD_READY;
   intr_set_level (old_level);
+
+  // Must check if threads priority is greater
+  // here, if true yield
+  if ( (t->priority > running_thread()->priority) ){
+    thread_yield();
+  }
 }
+
 
 /* Returns the name of the running thread. */
 const char *

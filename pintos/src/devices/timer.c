@@ -27,10 +27,6 @@ static int64_t ticks;
    Initialized by timer_calibrate(). */
 static unsigned loops_per_tick;
 
-bool
-thread_lower_priority (const struct list_elem *a_, const struct list_elem *b_,
-                         void *aux UNUSED);
-
 
 static intr_handler_func timer_interrupt;
 static bool too_many_loops (unsigned loops);
@@ -91,20 +87,6 @@ int64_t
 timer_elapsed (int64_t then) 
 {
   return timer_ticks () - then;
-}
-
-/* Returns true if thread a has lower priority than thread b,
- * within a list of threads.
- * (Brian) */
-bool
-thread_lower_priority (const struct list_elem *a_,
-                        const struct list_elem *b_,
-                         void *aux UNUSED)
-{
-  const struct thread *a = list_entry (a_, struct thread, elem) ;
-  const struct thread *b = list_entry (b_, struct thread, elem) ;
-
-  return a->priority < b->priority;
 }
 
 /* Sleeps for approximately TICKS timer ticks.  Interrupts must

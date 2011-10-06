@@ -19,6 +19,9 @@ Owen Praeger <owenp@ksu.edu>
 >> preparing your submission, other than the Pintos documentation,
 >> course text, lecture notes, and course staff.
 
+It took us a while to set up git, but we finally got everything working 
+like we wanted.
+
 
                  ALARM CLOCK
                  ===========

@@ -125,7 +125,8 @@ thread_lower_priority (const struct list_elem *a_,
 
 
 /* If the ready list contains a thread with a higher priority,
- * yields to it. */
+ * yields to it.
+ * (Brian) */
 void thread_yield_to_higher_priority (void)
 {
   enum intr_level old_level = intr_disable ();

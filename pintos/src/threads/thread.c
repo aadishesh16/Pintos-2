@@ -258,7 +258,7 @@ thread_create (const char *name, int priority,
   enum intr_level old_level;
 
   ASSERT (function != NULL);
-
+  ASSERT (priority >= PRI_MIN && priority <= PRI_MAX)
   /* Allocate thread. */
   t = palloc_get_page (PAL_ZERO);
   if (t == NULL)
@@ -411,6 +411,24 @@ thread_yield (void)
   intr_set_level (old_level);
 }
 
+
+/* Yields the CPU.  The current thread is not put to sleep and
+   may be scheduled again immediately at the scheduler's whim. */
+void
+thread_yield_external (struct thread *cur) 
+{
+  enum intr_level old_level;
+  
+  ASSERT (!intr_context ());
+
+  old_level = intr_disable ();
+  if (cur != idle_thread ){
+    list_insert_ordered(&ready_list, &cur->elem, thread_higher_priority, NULL);
+  }
+  cur->status = THREAD_READY;
+  schedule ();
+  intr_set_level (old_level);
+}
 /* Invoke function 'func' on all threads, passing along 'aux'.
    This function must be called with interrupts off. */
 void

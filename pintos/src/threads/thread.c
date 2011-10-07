@@ -120,6 +120,13 @@ thread_init (void)
 void
 donate_priority(struct thread *a, struct thread *b) {
   //implement me!
+  //a = the donor
+  //b = the reciever
+
+  b->priority = a->priority;
+  list_push_front(&b->donorList, &a->donationElem);
+
+
 }
 
 /* Returns true if thread a has higher priority than thread b,

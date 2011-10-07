@@ -95,7 +95,7 @@ struct thread
     int base_priority;                  /* stores the original priority if a donated priority exists */
     struct list donorList;               /* A list of priority donors */
     struct list_elem allelem;           /* List element for all threads list. */
-    
+    struct list_elem donationElem;      /* list element for donor lists */
     struct list_elem waitelem;          // List of threads that are waiting
 
     /* Shared between thread.c and synch.c. */

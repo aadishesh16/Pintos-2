@@ -95,6 +95,7 @@ struct thread
     int base_priority;                  /* stores the original priority if a donated priority exists */
     struct thread *donee;               /* the thread that this thread donated its priority to */
     struct list donorList;              /* A list of priority donors */
+    struct lock *wantsLock;              /* the lock the thread is trying to get */
     struct list_elem allelem;           /* List element for all threads list. */
     struct list_elem donationElem;      /* list element for donor lists */
     struct list_elem waitelem;          // List of threads that are waiting

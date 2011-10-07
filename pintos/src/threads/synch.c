@@ -210,12 +210,14 @@ lock_acquire (struct lock *lock)
   ASSERT (!lock_held_by_current_thread (lock));
 
   old_level = intr_disable();
-
-  if (lock->holder != NULL && thread_current()->priority > lock->holder->priority) //used to kernel panic here!
+  struct thread *donor = thread_current();
+  if (lock->holder != NULL && donor->priority > lock->holder->priority) //used to kernel panic here!
   {
-       //donate!
-    donate_priority(thread_current(), lock->holder); 
-    recompute_thread_priority(lock->holder);
+    //donate!
+    donor->wantsLock = lock;
+    donor->donee = lock->holder;
+    list_push_back(&lock->holder->donorList, &donor->donationElem);
+    recompute_thread_priority(donor->donee);
   }
   sema_down (&lock->semaphore);
   lock->holder = thread_current ();
@@ -254,30 +256,12 @@ lock_release (struct lock *lock)
   ASSERT (lock != NULL);
   ASSERT (lock_held_by_current_thread (lock));
   
-  struct thread *curThread = thread_current();
   struct thread *t = lock->holder;
 
   old_level = intr_disable();
   sema_up (&lock->semaphore);
   lock->holder = NULL;
-  //how do we get the front element of the semaphore's wait queue???
-
-
-  //release the donated priority/ the donor
-  /*if (t != NULL && !list_empty(&t->donorList)) {
-     struct list_elem *lockElem = list_front(&t->donorList);
-     if ( lockElem != NULL ) {
-       if (list_next(lockElem) != NULL) {
-	 struct thread *a = list_entry (list_next(lockElem), struct thread, donationElem) ;
-	 t->priority = a->priority;
-       } 
-       else {
-	 t->priority = t->base_priority;
-       }
-       list_pop_front(&t->donorList);
-     }
-     }*/
-  //how do I make the donor "know" that it should stop donating to t?
+  
   recompute_thread_priority(t);
 
   intr_set_level (old_level);

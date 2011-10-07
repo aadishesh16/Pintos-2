@@ -122,12 +122,8 @@ donate_priority(struct thread *a, struct thread *b) {
   //implement me!
   //a = the donor
   //b = the reciever
-
-  //b->priority = a->priority;
   a->donee = b;
   list_push_front(&b->donorList, &a->donationElem);
-
-
 }
 
 /* Returns true if thread a has higher priority than thread b,
@@ -415,24 +411,26 @@ thread_yield (void)
 void recompute_thread_priority (struct thread* t) {
   //search through the chain of donors and get the highest priority
   struct thread* donorThread;
+  //if held lock = lock wanted, set donee to null?
   t->priority = 0;
   if (t != NULL && list_size(&t->donorList) > 0) {
     //search the list
     donorThread = list_entry (list_front(&t->donorList), struct thread, donationElem) ;
     while( donorThread != NULL ) {
       //check if we can get this thread's priority!
-      if (donorThread->donee == t) {
-	//this thread is donating to us.
+      if (donorThread->donee == t) { //this thread is donating to us.
 	recompute_thread_priority(donorThread);//recompute the priority of the donorThread.
-	if(donorThread->priority > t->priority) {
+	if(donorThread->wantsLock != NULL && donorThread->wantsLock->holder == NULL) {
+	  donorThread->donee = NULL;
+	}
+	else if(donorThread->priority > t->priority) {
 	  t->priority = donorThread->priority;
 	}
       }
-      else {
-	//this is no longer a donor for t
+      else { //this is no longer a donor for t
 	list_remove(&donorThread->donationElem);
       }
-      donorThread = list_next(&donorThread->donationElem);
+      donorThread = list_entry (list_next(&donorThread->donationElem), struct thread, donationElem);//whoops
     }
   }
   if (t->base_priority > t->priority) {

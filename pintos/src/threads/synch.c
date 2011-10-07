@@ -72,7 +72,7 @@ sema_down (struct semaphore *sema)
   while (sema->value == 0) 
     {
       //list_push_back (&sema->waiters, &thread_current ()->elem);
-      list_insert_ordered(&sema->waiters, &thread_current ()->elem, thread_higher_priority, NULL);
+      list_insert_ordered(&sema->waiters, &thread_current ()->waitelem, thread_higher_priority, NULL);
       thread_block ();
     }
   sema->value--;
@@ -121,7 +121,7 @@ sema_up (struct semaphore *sema)
   old_level = intr_disable ();
   if (!list_empty (&sema->waiters)) 
     thread_unblock (list_entry (list_pop_front (&sema->waiters),
-                                struct thread, elem));
+                                struct thread, waitelem));
   sema->value++;
   intr_set_level (old_level);
 }
@@ -205,7 +205,7 @@ lock_acquire (struct lock *lock)
 
   old_level = intr_disable();
 
-  if (thread_current()->priority < lock->holder->priority) 
+  if (thread_current()->priority > lock->holder->priority) //used to kernel panic here!
   {
        //donate!
       donate_priority(thread_current(), lock->holder); //fuck, yeah!
@@ -243,14 +243,30 @@ lock_try_acquire (struct lock *lock)
 void
 lock_release (struct lock *lock) 
 {
+  enum intr_level old_level;
   ASSERT (lock != NULL);
   ASSERT (lock_held_by_current_thread (lock));
   
-  /*if (list_size(&lock->holder->priorityStack) > 1) {
-   list_pop_front(&lock->holder->priorityStack);
-   }*/
+  old_level = intr_disable();
+  
+  //release the donated priority/ the donor
+  if (!list_empty(&lock->holder->donorList)) {
+     struct list_elem *lockElem = list_front(&(lock->holder)->donorList);
+     if ( lockElem != NULL ) {
+       if (list_next(lockElem) != NULL) {
+	 struct thread *a = list_entry (list_next(lockElem), struct thread, donationElem) ;
+	 (lock->holder)->priority = a->priority;
+       } 
+       else {
+	 lock->holder->priority = lock->holder->base_priority;
+       }
+       list_pop_front(&lock->holder->donorList);
+     }
+  }
+
   lock->holder = NULL;
   sema_up (&lock->semaphore);
+  intr_set_level (old_level);
 }
 
 /* Returns true if the current thread holds LOCK, false

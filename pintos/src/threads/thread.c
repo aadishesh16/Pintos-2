@@ -314,13 +314,6 @@ thread_block (void)
    be important: if the caller had disabled interrupts itself,
    it may expect that it can atomically unblock a thread and
    update other data.
-   
-   We have to check if t is not the idle thread
-   Then if it isn't, we insert it into the list ordered
-   else we call list_push_back
-
-   At the end we must check if threads piority is greater
-   than running thread, if that's true call thread_yield()
    */
 void
 thread_unblock (struct thread *t) 
@@ -333,16 +326,10 @@ thread_unblock (struct thread *t)
   ASSERT (t->status == THREAD_BLOCKED);
 
   // this will insert the thread into the ready list
-  // by priority provided it is not the idle thread
+  // by priority
   list_insert_ordered(&ready_list, &t->elem, &thread_higher_priority, NULL);
   t->status = THREAD_READY;
   intr_set_level (old_level);
-
-  // Must check if threads priority is greater
-  // here, if true yield
-  if ( (list_begin(&t->priorityStack)->value > list_begin(&running_thread()->priorityStack)->value) ){
-    thread_yield();
-  }
 }
 
 

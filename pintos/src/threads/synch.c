@@ -204,11 +204,12 @@ lock_acquire (struct lock *lock)
   ASSERT (!lock_held_by_current_thread (lock));
 
   old_level = intr_disable();
+
   if (list_begin(&thread_current()->priorityStack)->value < list_begin(&lock->holder->priorityStack)->value) 
-    {
+  {
        //donate!
       donate_priority(thread_current(), lock->holder); //fuck, yeah!
-    }
+  }
   sema_down (&lock->semaphore);
   lock->holder = thread_current ();
   intr_set_level (old_level);

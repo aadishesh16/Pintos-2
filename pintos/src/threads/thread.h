@@ -91,8 +91,9 @@ struct thread
     enum thread_status status;          /* Thread state. */
     char name[16];                      /* Name (for debugging purposes). */
     uint8_t *stack;                     /* Saved stack pointer. */
-    //int priority;                       /* Priority. */
-    struct list priorityStack;               /* A stack for priorities */
+    int priority;                       /* Priority. */
+    int base_priority;                  /* stores the original priority if a donated priority exists */
+    struct list donorList;               /* A list of priority donors */
     struct list_elem allelem;           /* List element for all threads list. */
     
     struct list_elem waitelem;          // List of threads that are waiting

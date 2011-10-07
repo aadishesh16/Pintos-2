@@ -119,9 +119,7 @@ thread_init (void)
  */
 void
 donate_priority(struct thread *a, struct thread *b) {
-  struct list_elem newPriority;
-  newPriority.value = (list_begin(&a->priorityStack))->value;
-  list_push_front(&b->priorityStack, &newPriority);
+  //implement me!
 }
 
 /* Returns true if thread a has higher priority than thread b,
@@ -132,10 +130,10 @@ thread_higher_priority (const struct list_elem *a_,
                         const struct list_elem *b_,
                          void *aux UNUSED)
 {
-  const struct thread *a = list_entry (a_, struct thread, elem) ;
-  const struct thread *b = list_entry (b_, struct thread, elem) ;
+  struct thread *a = list_entry (a_, struct thread, elem) ;
+  struct thread *b = list_entry (b_, struct thread, elem) ;
 
-  return list_begin(&a->priorityStack)->value < list_begin(&b->priorityStack)->value;
+  return a->priority < b->priority;
 }
 
 
@@ -147,10 +145,10 @@ thread_lower_priority (const struct list_elem *a_,
                         const struct list_elem *b_,
                          void *aux UNUSED)
 {
-  const struct thread *a = list_entry (a_, struct thread, elem) ;
-  const struct thread *b = list_entry (b_, struct thread, elem) ;
+  struct thread *a = list_entry (a_, struct thread, elem) ;
+  struct thread *b = list_entry (b_, struct thread, elem) ;
 
-  return list_begin(&a->priorityStack)->value < list_begin(&b->priorityStack)->value;
+  return a->priority > b->priority;
 }
 
 
@@ -165,7 +163,7 @@ void thread_yield_to_higher_priority (void)
     struct thread *cur = thread_current ();
     struct thread *max = list_entry (list_max (&ready_list,
           thread_lower_priority, NULL), struct thread, elem);
-    if (list_begin(&max->priorityStack)->value > list_begin(&cur->priorityStack)->value) {
+    if (max->priority > cur->priority) {
       if (intr_context ()) {
         intr_yield_on_return ();
       }
@@ -427,8 +425,7 @@ thread_foreach (thread_action_func *func, void *aux)
 void
 thread_set_priority (int new_priority) 
 {
-  //thread_current ()->priority = new_priority;
-  list_begin(&thread_current()->priorityStack)->value = new_priority;
+  thread_current ()->priority = new_priority;
   thread_yield_to_higher_priority();
 }
 
@@ -436,8 +433,7 @@ thread_set_priority (int new_priority)
 int
 thread_get_priority (void) 
 {
-  //return thread_current ()->priority;
-  return list_begin(&thread_current()->priorityStack)->value;
+  return thread_current ()->priority;
 }
 
 /* Sets the current thread's nice value to NICE. */
@@ -555,11 +551,9 @@ init_thread (struct thread *t, const char *name, int priority)
   strlcpy (t->name, name, sizeof t->name);
   t->stack = (uint8_t *) t + PGSIZE;
 
-  list_init(&t->priorityStack);
-  struct list_elem initialPriority;
-  initialPriority.value = priority;
-  list_push_front(&t->priorityStack, &initialPriority);
-  //t->priority = priority;
+  list_init(&t->donorList);
+  t->priority = priority;
+  t->base_priority = priority;
 
   t->magic = THREAD_MAGIC;
   // Initialize semaphore

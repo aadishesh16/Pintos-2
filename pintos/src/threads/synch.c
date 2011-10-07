@@ -205,7 +205,7 @@ lock_acquire (struct lock *lock)
 
   old_level = intr_disable();
 
-  if (list_begin(&thread_current()->priorityStack)->value < list_begin(&lock->holder->priorityStack)->value) 
+  if (thread_current()->priority < lock->holder->priority) 
   {
        //donate!
       donate_priority(thread_current(), lock->holder); //fuck, yeah!
@@ -246,9 +246,9 @@ lock_release (struct lock *lock)
   ASSERT (lock != NULL);
   ASSERT (lock_held_by_current_thread (lock));
   
-  if (list_size(&lock->holder->priorityStack) > 1) {
+  /*if (list_size(&lock->holder->priorityStack) > 1) {
    list_pop_front(&lock->holder->priorityStack);
-  }
+   }*/
   lock->holder = NULL;
   sema_up (&lock->semaphore);
 }

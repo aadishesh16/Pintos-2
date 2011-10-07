@@ -92,7 +92,7 @@ struct thread
     char name[16];                      /* Name (for debugging purposes). */
     uint8_t *stack;                     /* Saved stack pointer. */
     //int priority;                       /* Priority. */
-    struct list priority;               /* A stack for priorities */
+    struct list priorityStack;               /* A stack for priorities */
     struct list_elem allelem;           /* List element for all threads list. */
     
     struct list_elem waitelem;          // List of threads that are waiting
@@ -144,6 +144,8 @@ int thread_get_nice (void);
 void thread_set_nice (int);
 int thread_get_recent_cpu (void);
 int thread_get_load_avg (void);
+
+void donate_priority(struct thread*, struct thread *);
 
 bool
 thread_higher_priority (const struct list_elem *a_,

@@ -91,6 +91,7 @@ struct list_elem
   {
     struct list_elem *prev;     /* Previous list element. */
     struct list_elem *next;     /* Next list element. */
+    int value;            /* DIRTY HACK FOR PRIORITY SCHEDULING */
   };
 
 /* List. */

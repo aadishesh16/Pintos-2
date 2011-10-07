@@ -123,7 +123,8 @@ donate_priority(struct thread *a, struct thread *b) {
   //a = the donor
   //b = the reciever
 
-  b->priority = a->priority;
+  //b->priority = a->priority;
+  a->donee = b;
   list_push_front(&b->donorList, &a->donationElem);
 
 
@@ -140,7 +141,7 @@ thread_higher_priority (const struct list_elem *a_,
   struct thread *a = list_entry (a_, struct thread, elem) ;
   struct thread *b = list_entry (b_, struct thread, elem) ;
 
-  return a->priority < b->priority;
+  return a->priority > b->priority;
 }
 
 
@@ -155,7 +156,7 @@ thread_lower_priority (const struct list_elem *a_,
   struct thread *a = list_entry (a_, struct thread, elem) ;
   struct thread *b = list_entry (b_, struct thread, elem) ;
 
-  return a->priority > b->priority;
+  return a->priority < b->priority;
 }
 
 
@@ -411,24 +412,34 @@ thread_yield (void)
   intr_set_level (old_level);
 }
 
-
-/* Yields the CPU.  The current thread is not put to sleep and
-   may be scheduled again immediately at the scheduler's whim. */
-void
-thread_yield_external (struct thread *cur) 
-{
-  enum intr_level old_level;
-  
-  ASSERT (!intr_context ());
-
-  old_level = intr_disable ();
-  if (cur != idle_thread ){
-    list_insert_ordered(&ready_list, &cur->elem, thread_higher_priority, NULL);
+void recompute_thread_priority (struct thread* t) {
+  //search through the chain of donors and get the highest priority
+  struct thread* donorThread;
+  t->priority = 0;
+  if (t != NULL && list_size(&t->donorList) > 0) {
+    //search the list
+    donorThread = list_entry (list_front(&t->donorList), struct thread, donationElem) ;
+    while( donorThread != NULL ) {
+      //check if we can get this thread's priority!
+      if (donorThread->donee == t) {
+	//this thread is donating to us.
+	recompute_thread_priority(donorThread);//recompute the priority of the donorThread.
+	if(donorThread->priority > t->priority) {
+	  t->priority = donorThread->priority;
+	}
+      }
+      else {
+	//this is no longer a donor for t
+	list_remove(&donorThread->donationElem);
+      }
+      donorThread = list_next(&donorThread->donationElem);
+    }
   }
-  cur->status = THREAD_READY;
-  schedule ();
-  intr_set_level (old_level);
+  if (t->base_priority > t->priority) {
+    t->priority = t->base_priority;
+  }
 }
+
 /* Invoke function 'func' on all threads, passing along 'aux'.
    This function must be called with interrupts off. */
 void

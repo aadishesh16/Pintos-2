@@ -93,7 +93,8 @@ struct thread
     uint8_t *stack;                     /* Saved stack pointer. */
     int priority;                       /* Priority. */
     int base_priority;                  /* stores the original priority if a donated priority exists */
-    struct list donorList;               /* A list of priority donors */
+    struct thread *donee;               /* the thread that this thread donated its priority to */
+    struct list donorList;              /* A list of priority donors */
     struct list_elem allelem;           /* List element for all threads list. */
     struct list_elem donationElem;      /* list element for donor lists */
     struct list_elem waitelem;          // List of threads that are waiting
@@ -133,6 +134,7 @@ const char *thread_name (void);
 
 void thread_exit (void) NO_RETURN;
 void thread_yield (void);
+void recompute_thread_priority (struct thread*);
 
 /* Performs some operation on thread t, given auxiliary data AUX. */
 typedef void thread_action_func (struct thread *t, void *aux);

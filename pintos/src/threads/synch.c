@@ -127,7 +127,6 @@ sema_up (struct semaphore *sema)
   sema->value++;
   if (t != NULL && t->priority > thread_current()->priority) {
 	//the head/current thread should yeild
-	//thread_yield_external(thread_current()); //reschedules stuff.
 	thread_yield_to_higher_priority();
   }
   intr_set_level (old_level);
@@ -215,7 +214,8 @@ lock_acquire (struct lock *lock)
   if (lock->holder != NULL && thread_current()->priority > lock->holder->priority) //used to kernel panic here!
   {
        //donate!
-      donate_priority(thread_current(), lock->holder); //fuck, yeah!
+    donate_priority(thread_current(), lock->holder); 
+    recompute_thread_priority(lock->holder);
   }
   sema_down (&lock->semaphore);
   lock->holder = thread_current ();
@@ -254,14 +254,17 @@ lock_release (struct lock *lock)
   ASSERT (lock != NULL);
   ASSERT (lock_held_by_current_thread (lock));
   
+  struct thread *curThread = thread_current();
   struct thread *t = lock->holder;
 
   old_level = intr_disable();
   sema_up (&lock->semaphore);
   lock->holder = NULL;
+  //how do we get the front element of the semaphore's wait queue???
+
 
   //release the donated priority/ the donor
-  if (t != NULL && !list_empty(&t->donorList)) {
+  /*if (t != NULL && !list_empty(&t->donorList)) {
      struct list_elem *lockElem = list_front(&t->donorList);
      if ( lockElem != NULL ) {
        if (list_next(lockElem) != NULL) {
@@ -273,7 +276,9 @@ lock_release (struct lock *lock)
        }
        list_pop_front(&t->donorList);
      }
-  }
+     }*/
+  //how do I make the donor "know" that it should stop donating to t?
+  recompute_thread_priority(t);
 
   intr_set_level (old_level);
 }

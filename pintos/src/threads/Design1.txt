@@ -120,7 +120,15 @@ crash or halt.
 >> `struct' member, global or static variable, `typedef', or
 >> enumeration.  Identify the purpose of each in 25 words or less.
 
+
+
 >> B2: Explain the data structure used to track priority donation.
+
+We used the built in doubly-linked list as well as a pointer for the
+donee within our Donor list data structure. This doubly linked list
+is a list of donors. We store the highest priority
+of all the donated priorities in the threads priority field. Each
+thread retains the base priority during execution. 
 
 
 ---- ALGORITHMS ----
@@ -128,11 +136,37 @@ crash or halt.
 >> B3: How do you ensure that the highest priority thread waiting for
 >> a lock, semaphore, or condition variable wakes up first?
 
+We first used list_insert_ordered so that we would insert the thread
+in order of priority. Secondly we have also sorted these lists
+(for example, the semaphore.waiters list, the cond->waiters list,
+  and the ready_list relating to threads.)
+so that they would be in order as well. This will ensure that
+the highest priority thread waiting on these locks, semaphores,
+or condition variables wakes up first.
+
 >> B4: Describe the sequence of events when a call to lock_acquire()
 >> causes a priority donation.  How is nested donation handled?
 
+A low priority thread has a lock that it is holding onto. A higher
+priority thread is wanting the lock that the lower priority thread
+currently holds on to. In order to force the lower priority thread
+to relinquish the lock it donates its priority to the lower priority thread
+so that the higher priority thread can use the lock to run. 
+
+For nested donation handling, we have used our donee within the donor list.
+This donee holds a pointer to a thread that has had its priority donated to it.
+So if you have nested priority you can trace the donated priority from source to
+the final recipient.
+
 >> B5: Describe the sequence of events when lock_release() is called
 >> on a lock that a higher-priority thread is waiting for.
+
+There is a wait queue on the semaphore for the lock, the first thread on the wait queue for the
+lock is the highest priority for that lock. So that thread will be the donor for the
+lock holder. So we take the high priority thread and we remove its donation element 
+which removes this thread from the donor list owned by lock holder. We recompute the
+priority which demotes the lock holders priority and then the lock holder will release the semaphore
+for the lock. This will open the lock to the high priority thread.
 
 ---- SYNCHRONIZATION ----
 
@@ -140,11 +174,24 @@ crash or halt.
 >> how your implementation avoids it.  Can you use a lock to avoid
 >> this race?
 
+Recompute thread priority is being executing at the same time that thread set priority 
+is being executed upon the current thread. We disable interrupts so that what ever
+update happens to the threads priority happens atomically. No, you cannot use a lock to avoid
+this race. Two threads cannot execute thread_set_priority at the same time because there is only
+one current thread at a time. The race condition comes from the thread priority being updated
+at differeing locations.
+
 ---- RATIONALE ----
 
 >> B7: Why did you choose this design?  In what ways is it superior to
 >> another design you considered?
 
+At first we thought about using a fixed sized array for priority but this does not allow
+for deeply nested donations. Next we attempted to modify the list structure within pintos
+  and use it like a priority stack. However this did not work at all and we had to 
+  completely rethink our ideas for this project. We finally settled on using a
+  donor list with donees along with an integer priority and a base priority. 
+  This works with what we were trying to do.
 
               ADVANCED SCHEDULER [EXTRA CREDIT]
               =================================

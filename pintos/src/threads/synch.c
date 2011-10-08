@@ -105,6 +105,7 @@ sema_try_down (struct semaphore *sema)
   return success;
 }
 
+
 /* Up or "V" operation on a semaphore.  Increments SEMA's value
    and wakes up one thread of those waiting for SEMA, if any.
 
@@ -121,6 +122,7 @@ sema_up (struct semaphore *sema)
   //sort thread list?
   old_level = intr_disable ();
   if (!list_empty (&sema->waiters)){
+    list_sort(&sema->waiters, thread_higher_priority, NULL);
     t = list_entry (list_pop_front (&sema->waiters), struct thread, elem);
     thread_unblock (t);
   }

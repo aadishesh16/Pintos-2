@@ -119,19 +119,6 @@ thread_init (void)
   initial_thread->tid = allocate_tid ();
 }
 
-/*
-  Donates a priority from thread a to thread b
-  pushes a copy of thread a's priority onto thread b's priority stack
- */
-void
-donate_priority(struct thread *a, struct thread *b) {
-  //implement me!
-  //a = the donor
-  //b = the reciever
-  a->donee = b;
-  list_push_front(&b->donorList, &a->donationElem);
-}
-
 /* Returns true if thread a has higher priority than thread b,
  * within a list of threads.
  * (Brian) */

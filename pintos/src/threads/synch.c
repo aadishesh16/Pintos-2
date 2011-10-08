@@ -260,17 +260,12 @@ lock_release (struct lock *lock)
 
   old_level = intr_disable();
 
-  // We have to remove the donation from each thread 
+  // We have to remove the donation from the highest priority thread (the front) 
   // in our waiting list
   if(!list_empty(&lock->semaphore.waiters)){
-    struct list_elem *e;
-    // Loop through every lock on waiters list
-    for (e = list_begin(&lock->semaphore.waiters); e != list_end(&lock->semaphore.waiters); e = list_next(e))
-    {
-      struct thread *t = list_entry (e, struct thread, elem);
-      t->donee = NULL;
-      list_remove(&t->donationElem);
-    }
+    struct thread *thrd = list_entry (list_begin(&lock->semaphore.waiters), struct thread, elem);
+    thrd->donee = NULL;
+    list_remove(&thrd->donationElem);
     recompute_thread_priority(t);
   }
 

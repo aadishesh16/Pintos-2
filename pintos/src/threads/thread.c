@@ -446,7 +446,10 @@ void recompute_thread_priority (struct thread* t) {
   {
     recompute_thread_priority(t->donee);
   }
+}
 
+void sort_ready_list() {
+  list_sort(&ready_list, thread_higher_priority, NULL);
 }
 
 /* Invoke function 'func' on all threads, passing along 'aux'.
@@ -470,8 +473,20 @@ thread_foreach (thread_action_func *func, void *aux)
 void
 thread_set_priority (int new_priority) 
 {
-  thread_current ()->priority = new_priority;
+  enum intr_level old_level;
+  old_level = intr_disable();
+  struct thread * cur = thread_current();
+
+  if (cur->priority != cur->base_priority) {
+    cur->base_priority = new_priority;
+  }
+  else {
+    cur->priority = new_priority;
+    cur->base_priority = new_priority;
+  }
+  recompute_thread_priority(cur);
   thread_yield_to_higher_priority();
+  intr_set_level (old_level);
 }
 
 /* Returns the current thread’s priority. In the presence of priority donation, returns the highest (donated) priority. You need not provide any interface to allow a thread to directly modify other threads’ priorities. The priority scheduler is not used in any later project. */

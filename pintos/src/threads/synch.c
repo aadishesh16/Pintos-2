@@ -218,6 +218,7 @@ lock_acquire (struct lock *lock)
     donor->donee = lock->holder;
     list_push_back(&lock->holder->donorList, &donor->donationElem);
     recompute_thread_priority(donor->donee);
+    sort_ready_list();
   }
   sema_down (&lock->semaphore);
   lock->holder = thread_current ();
@@ -267,6 +268,7 @@ lock_release (struct lock *lock)
     thrd->donee = NULL;
     list_remove(&thrd->donationElem);
     recompute_thread_priority(t);
+    sort_ready_list();
   }
 
   lock->holder = NULL;

@@ -218,7 +218,7 @@ lock_acquire (struct lock *lock)
     donor->donee = lock->holder;
     list_push_back(&lock->holder->donorList, &donor->donationElem);
     recompute_thread_priority(donor);
-    sort_ready_list();
+    //sort_ready_list();
   }
   sema_down (&lock->semaphore);
   lock->holder = thread_current ();

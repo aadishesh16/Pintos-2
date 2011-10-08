@@ -86,17 +86,28 @@ wait list so that it was confirmed that the thread was not waiting any more.
 Semaphores prevent multiple threads from calling the same section
 of code. Using sema up and sema down threads can block off other
 threads while the critical section of code is executing for 
-that specific thread.
+that specific thread. While the threads are blocked, they are waiting
+for the thread running the code to signal so they can run their 
+  critical code.
 
 
 >> A5: How are race conditions avoided when a timer interrupt occurs
 >> during a call to timer_sleep()?
+
+Similar to thread_sleep, we used semaphores to prevent race conditions.
+In the critical section of the code, interupts are turned off by the
+semaphore. This prevents race conditions.
 
 
 ---- RATIONALE ----
 
 >> A6: Why did you choose this design?  In what ways is it superior to
 >> other designs that you considered?
+
+Semaphores prevent race conditions and deadlock. It is also simplier than
+trying to reimpliment thread blocking. Without the use of semaphores,
+you would have deadlock and would cause the operating system to 
+crash or halt.
 
 
 

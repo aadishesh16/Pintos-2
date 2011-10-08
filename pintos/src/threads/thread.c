@@ -305,7 +305,12 @@ thread_create (const char *name, int priority,
   intr_set_level (old_level);
   /* Add to run queue. */
   thread_unblock (t);
-
+  
+  if (priority > thread_current()->priority) {
+    thread_yield_to_higher_priority();
+  }
+  
+  
   return tid;
 }
 
@@ -485,6 +490,7 @@ thread_set_priority (int new_priority)
     cur->base_priority = new_priority;
   }
   recompute_thread_priority(cur);
+  sort_ready_list();
   thread_yield_to_higher_priority();
   intr_set_level (old_level);
 }

@@ -119,8 +119,17 @@ crash or halt.
 >> B1: Copy here the declaration of each new or changed `struct' or
 >> `struct' member, global or static variable, `typedef', or
 >> enumeration.  Identify the purpose of each in 25 words or less.
+To struct thread we added:
+    struct thread *donee;               /* the thread that this thread donated its priority to */
+    struct list donorList;              /* A list of priority donors */
+    struct list_elem donationElem;      /* list element for donor lists */
 
+DonationElems is the list element for the donor list. 
+donorList stores the donors who gave their priority to the thread. 
+*donee is NULL or contains the thread to which the given thread donated its priority to. 
 
+int base_priority;                     /* stores the original priority if a donated priority exists */
+This is the original priority that the thread had before any donations. 
 
 >> B2: Explain the data structure used to track priority donation.
 

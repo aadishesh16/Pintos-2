@@ -217,12 +217,14 @@ lock_acquire (struct lock *lock)
     donor->wantsLock = lock;
     donor->donee = lock->holder;
     list_push_back(&lock->holder->donorList, &donor->donationElem);
-    recompute_thread_priority(donor->donee);
+    recompute_thread_priority(donor);
     sort_ready_list();
   }
   sema_down (&lock->semaphore);
   lock->holder = thread_current ();
   //recompute_thread_priority(thread_current()); // BAD!
+  //sort_ready_list(); //does nothing.
+  //thread_yield_to_higher_priority(); //does nothing.
   intr_set_level (old_level);
 }
 
@@ -266,15 +268,17 @@ lock_release (struct lock *lock)
   // in our waiting list
   if(!list_empty(&lock->semaphore.waiters)){
     struct thread *thrd = list_entry (list_begin(&lock->semaphore.waiters), struct thread, elem);
-    thrd->donee = NULL;
     list_remove(&thrd->donationElem);
-    recompute_thread_priority(t);
+    recompute_thread_priority(thrd);
+    thrd->donee = NULL;
+    thrd->wantsLock = NULL;
+    //recompute_thread_priority(t);
     sort_ready_list();
   }
   
   lock->holder = NULL;
   sema_up(&lock->semaphore);
-  
+  //thread_yield_to_higher_priority(); //changes nothing
   intr_set_level (old_level);
 }
 

@@ -71,7 +71,6 @@ sema_down (struct semaphore *sema)
   old_level = intr_disable ();
   while (sema->value == 0) 
     {
-      //list_push_back (&sema->waiters, &thread_current ()->elem);
       list_insert_ordered(&sema->waiters, &thread_current ()->elem, thread_higher_priority, NULL);
       thread_block ();
     }
@@ -119,7 +118,6 @@ sema_up (struct semaphore *sema)
 
   ASSERT (sema != NULL);
   struct thread *t = NULL;
-  //sort thread list?
   old_level = intr_disable ();
   if (!list_empty (&sema->waiters)){
     list_sort(&sema->waiters, thread_higher_priority, NULL);
@@ -128,7 +126,6 @@ sema_up (struct semaphore *sema)
   }
   sema->value++;
   if (t != NULL && t->priority > thread_current()->priority) {
-    //don't sort/recompute here
     thread_yield_to_higher_priority();
   }
   intr_set_level (old_level);
@@ -224,9 +221,6 @@ lock_acquire (struct lock *lock)
   }
   sema_down (&lock->semaphore);
   lock->holder = thread_current ();
-  //recompute_thread_priority(thread_current()); // BAD!
-  //sort_ready_list(); //does nothing.
-  //thread_yield_to_higher_priority(); //does nothing.
   intr_set_level (old_level);
 }
 
@@ -274,13 +268,11 @@ lock_release (struct lock *lock)
     recompute_thread_priority(thrd);
     thrd->donee = NULL;
     thrd->wantsLock = NULL;
-    //recompute_thread_priority(t);
     sort_ready_list();
   }
   
   lock->holder = NULL;
   sema_up(&lock->semaphore);
-  //thread_yield_to_higher_priority(); //changes nothing
   intr_set_level (old_level);
 }
 
@@ -316,7 +308,7 @@ cond_init (struct condition *cond)
 
 /* Returns true if thread a has higher priority than thread b,
  * within a list of threads.
- * (Brian) */
+ * (Carlos) */
 bool
 waiter_higher_priority (struct list_elem *_a,
                         struct list_elem *_b,

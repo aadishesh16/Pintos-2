@@ -163,4 +163,10 @@ thread_lower_priority (const struct list_elem *a_,
 
 void thread_yield_to_higher_priority (void);
 
+bool
+thread_donor_priority(const struct list_elem *a_,
+                        const struct list_elem *b_,
+                          void *aux UNUSED);
+
+
 #endif /* threads/thread.h */

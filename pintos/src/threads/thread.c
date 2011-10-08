@@ -84,6 +84,12 @@ thread_lower_priority (const struct list_elem *a_,
 void thread_yield_to_higher_priority (void);
 
 
+bool
+thread_donor_priority(const struct list_elem *a_,
+                        const struct list_elem *b_,
+                          void *aux UNUSED);
+
+
 /* Initializes the threading system by transforming the code
    that's currently running into a thread.  This can't work in
    general and it is possible in this case only because loader.S
@@ -151,6 +157,17 @@ thread_lower_priority (const struct list_elem *a_,
 {
   struct thread *a = list_entry (a_, struct thread, elem) ;
   struct thread *b = list_entry (b_, struct thread, elem) ;
+
+  return a->priority < b->priority;
+}
+
+bool
+thread_donor_priority(const struct list_elem *a_,
+                        const struct list_elem *b_,
+                          void *aux UNUSED)
+{
+  struct thread *a = list_entry (a_, struct thread, donationElem);
+  struct thread *b = list_entry (b_, struct thread, donationElem);
 
   return a->priority < b->priority;
 }
@@ -409,33 +426,27 @@ thread_yield (void)
 }
 
 void recompute_thread_priority (struct thread* t) {
-  //search through the chain of donors and get the highest priority
-  struct thread* donorThread;
-  //if held lock = lock wanted, set donee to null?
-  t->priority = 0;
-  if (t != NULL && list_size(&t->donorList) > 0) {
-    //search the list
-    donorThread = list_entry (list_front(&t->donorList), struct thread, donationElem) ;
-    while( donorThread != NULL ) {
-      //check if we can get this thread's priority!
-      if (donorThread->donee == t) { //this thread is donating to us.
-	recompute_thread_priority(donorThread);//recompute the priority of the donorThread.
-	if(donorThread->wantsLock != NULL && donorThread->wantsLock->holder == NULL) {
-	  donorThread->donee = NULL;
-	}
-	else if(donorThread->priority > t->priority) {
-	  t->priority = donorThread->priority;
-	}
-      }
-      else { //this is no longer a donor for t
-	list_remove(&donorThread->donationElem);
-      }
-      donorThread = list_entry (list_next(&donorThread->donationElem), struct thread, donationElem);//whoops
+  
+  if(!list_empty(&t->donorList)){
+    struct thread *donor = list_entry(list_max(&t->donorList, thread_donor_priority, NULL), struct thread, donationElem);
+    if (donor->priority > t->priority){
+      t->priority = donor->priority;
+    }
+    else
+    {
+      t->priority = t->base_priority;
     }
   }
-  if (t->base_priority > t->priority) {
+  else
+  {
     t->priority = t->base_priority;
   }
+
+  if (t->donee != NULL)
+  {
+    recompute_thread_priority(t->donee);
+  }
+
 }
 
 /* Invoke function 'func' on all threads, passing along 'aux'.

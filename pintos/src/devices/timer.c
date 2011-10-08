@@ -201,7 +201,7 @@ timer_interrupt (struct intr_frame *args UNUSED)
   for (e = list_begin(&wait_list); e != list_end (&wait_list); e = list_next (e))
   {
     struct thread *t = list_entry (e, struct thread, waitelem);
-    if (t->wakeup < timer_ticks())
+    if (t->wakeup <= timer_ticks())
     {
       // Unblocking the thread
       sema_up(&t->sema);

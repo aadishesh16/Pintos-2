@@ -222,6 +222,7 @@ lock_acquire (struct lock *lock)
   }
   sema_down (&lock->semaphore);
   lock->holder = thread_current ();
+  //recompute_thread_priority(thread_current()); // BAD!
   intr_set_level (old_level);
 }
 

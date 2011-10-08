@@ -126,8 +126,8 @@ sema_up (struct semaphore *sema)
   }
   sema->value++;
   if (t != NULL && t->priority > thread_current()->priority) {
-	//the head/current thread should yeild
-	thread_yield_to_higher_priority();
+    //don't sort/recompute here
+    thread_yield_to_higher_priority();
   }
   intr_set_level (old_level);
 }

@@ -33,13 +33,49 @@ like we wanted.
 >> enumeration.  Identify the purpose of each in 25 words or less.
 
 
+static struct list wait_list;
+
+- This is our wait list for threads. We add threads to this list when
+they need to wait and not be in the ready list.
+
+struct semaphore sema;
+
+-This was added to the struct thread. Each thread needs its own struct
+so that it can signal and wait.
+
+struct list_elem waitalem;
+
+-This is the list element for all of the waiting threads
+
+int64_t wakeup;
+
+-This is the wakeup time variable for the struct thread. You need this variable to
+give each thread its wakeup time.
+
 ---- ALGORITHMS ----
 
 >> A2: Briefly describe what happens in a call to your timer_sleep(),
 >> including the effects of the timer interrupt handler.
 
+Timer_sleep() is first called and records the start time and wakeuptime. We
+then disable interupts, create a new thread t, and set that specific threads
+wakeup time to the wakeup time we recorded at the beginning of the function.
+We then push our new thread onto the waitlist and call sema_down to wait. 
+After this we enable interupts.
+
+Another function that had to be changed was timer_interrupt. We first
+increment ticks by 1 and call thread_tick() to keep track of ticks.
+We then have to enumerate through the wait list using a for loop, get the
+thread in the wait list and see if its wakeup time is less than ticks. If
+that's true signal and remove the thread from the wait list.
+
 >> A3: What steps are taken to minimize the amount of time spent in
 >> the timer interrupt handler?
+
+To minimize the time spent within the timer interrupt handler, we made sure to only
+enumerate through the wait list and check if their wake up time was less than
+the number of ticks. If that was true then we removed that thread from the 
+wait list so that it was confirmed that the thread was not waiting any more.
 
 
 ---- SYNCHRONIZATION ----

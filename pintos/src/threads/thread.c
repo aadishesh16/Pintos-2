@@ -431,15 +431,17 @@ thread_yield (void)
 }
 
 void recompute_thread_priority (struct thread* t) {
-  
+   t->priority = 0;
   if(!list_empty(&t->donorList)){
     struct thread *donor = list_entry(list_max(&t->donorList, thread_donor_priority, NULL), struct thread, donationElem);
+   
     if (donor->priority > t->priority){
       t->priority = donor->priority;
     }
     else
     {
-      t->priority = t->base_priority;
+      if(t->base_priority > t->priority)
+	t->priority = t->base_priority;
     }
   }
   else

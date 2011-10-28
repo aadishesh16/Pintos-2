@@ -1,5 +1,5 @@
 		           +--------------------------+
-                           |         CIS 520          |
+               |         CIS 520          |
 		           | PROJECT 2: USER PROGRAMS |
 		           |     DESIGN DOCUMENT      |
 		           +--------------------------+

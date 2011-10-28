@@ -110,6 +110,12 @@ struct thread
 
     /* Owned by thread.c. */
     unsigned magic;                     /* Detects stack overflow. */
+
+    /* next handle for struct thread */
+    int next_handle;
+
+    /* file descriptors*/
+    struct list fds;
   };
 
 /* If false (default), use round-robin scheduler.

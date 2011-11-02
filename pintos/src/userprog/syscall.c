@@ -14,6 +14,10 @@
 static void syscall_handler (struct intr_frame *);
 
 void
+copy_in(char* dest, char* src, int size);
+
+
+void
 syscall_init (void) 
 {
   intr_register_int (0x30, 3, INTR_ON, syscall_handler, "syscall");
@@ -115,7 +119,14 @@ syscall_handler (struct intr_frame *f)
 void
 copy_in(char* dest, char* src, int size)
 {
-  
+  unsigned char *dst = dest;
+  const unsigned char *src_ = src;
+
+  ASSERT (dst != NULL || size == 0);
+  ASSERT (src_ != NULL || size == 0);
+
+  while (size-- > 0)
+    *dst++ = *src_++;
 }
 
 int

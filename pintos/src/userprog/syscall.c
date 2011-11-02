@@ -9,6 +9,7 @@
 #include "threads/init.h"
 #include "threads/vaddr.h"
 #include "threads/palloc.h"
+#include <string.h>
 
 static void syscall_handler (struct intr_frame *);
 
@@ -109,6 +110,12 @@ syscall_handler (struct intr_frame *f)
 
   /* Execute the system call, and set the return value. */
   f->eax = sc->func (args[0], args[1], args[2]);
+}
+
+void
+copy_in(char* dest, char* src, int size)
+{
+  
 }
 
 int

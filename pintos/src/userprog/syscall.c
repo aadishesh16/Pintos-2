@@ -126,10 +126,10 @@ copy_in(char* dest, char* src, int size)
   ASSERT (src_ != NULL || size == 0);
 
   while (size-- > 0)
-    *dst++ = *src_++;
+    *(char *)dst++ = *(char *)src_++;
 }
 
-int
+/*int
 sys_open(const char *ufile)
 {
   char *kfile = copy_in_string (ufile);
@@ -139,7 +139,7 @@ sys_open(const char *ufile)
   fd = malloc (sizeof *fd);
   if (fd != NULL)
   {
-    lock_acquire (&fs_lock); // not defined....?
+    //lock_acquire (&fs_lock); // not defined....?
     fd->file = filesys_open (kfile);
     if (fd->file != NULL) // error dereferencing pointer to incomplete type
     {
@@ -150,9 +150,9 @@ sys_open(const char *ufile)
     }
     else
       free (fd);
-    lock_release (&fs_lock);
+    //lock_release (&fs_lock);
   }
 
   palloc_free_page (kfile);
   return handle;
-}
+}*/

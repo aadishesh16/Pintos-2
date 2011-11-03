@@ -88,6 +88,7 @@ start_process (void *file_name_)
 int
 process_wait (tid_t child_tid UNUSED) 
 {
+  for(;;);
   return -1;
 }
 
@@ -214,6 +215,11 @@ load (const char *file_name, void (**eip) (void), void **esp)
   off_t file_ofs;
   bool success = false;
   int i;
+  char *s = file_name;
+  char *commandName, *save_ptr, *argtok;
+
+  // Get the command, for example "echo"
+  commandName = strtok_r(s, " ", &save_ptr);
 
   /* Allocate and activate page directory. */
   t->pagedir = pagedir_create ();
@@ -222,7 +228,8 @@ load (const char *file_name, void (**eip) (void), void **esp)
   process_activate ();
 
   /* Open executable file. */
-  file = filesys_open (file_name);
+  // Pass in command name
+  file = filesys_open (commandName);
   if (file == NULL) 
     {
       printf ("load: %s: open failed\n", file_name);
@@ -304,6 +311,10 @@ load (const char *file_name, void (**eip) (void), void **esp)
   /* Set up stack. */
   if (!setup_stack (esp))
     goto done;
+
+  for (argtok = strtok_r(s, " ", &save_ptr); argtok != NULL;
+        argtok = strtok_r(NULL, " ", &save_ptr))
+
 
   /* Start address. */
   *eip = (void (*) (void)) ehdr.e_entry;
@@ -437,7 +448,7 @@ setup_stack (void **esp)
     {
       success = install_page (((uint8_t *) PHYS_BASE) - PGSIZE, kpage, true);
       if (success)
-        *esp = PHYS_BASE;
+        *esp = PHYS_BASE - 12;
       else
         palloc_free_page (kpage);
     }

@@ -229,8 +229,9 @@ sys_wait(pid_t pid)
 bool
 sys_create(const char *file, unsigned initial_size)
 {
-  printf("sys_create\n");
-  return NULL;
+  bool win;
+  win = filesys_create(file, initial_size);
+  return win;
 }
 
 /*Deletes the file called file. Returns true if successful, false otherwise. A file may be 

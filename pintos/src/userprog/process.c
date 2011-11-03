@@ -30,14 +30,38 @@ process_execute (const char *file_name)
 {
   char *fn_copy;
   tid_t tid;
+  //struct exec_info exec;
+  char thread_name[15];
+  char *save_ptr;
 
-  /* Make a copy of FILE_NAME.
+  /* Initialize exec_info */
+  //exec.file_name = file_name;
+  //sema_init (&exec.load_done, 0);
+
+  /* Create a new thread to execute FILE_NAME;*/
+  /*
+  strlcpy(thread_name, file_name, sizeof thread_name);
+  strtok_r (thread_name, " ", &save_ptr);
+  tid = thread_create (thread_name, PRI_DEFAULT, start_process, &exec);
+
+  if (tid != TID_ERROR)
+  {
+    sema_down (&exec.load_done);
+    if (exec.success)
+      list_push_back (&thread_current ()->children,
+                        &exec.wait_status->elem);
+    else
+      tid = TID_ERROR;
+  }
+  return tid;*/
+
+  /*Make a copy of FILE_NAME.
      Otherwise there's a race between the caller and load(). */
+  
   fn_copy = palloc_get_page (0);
   if (fn_copy == NULL)
     return TID_ERROR;
   strlcpy (fn_copy, file_name, PGSIZE);
-
   /* Create a new thread to execute FILE_NAME. */
   tid = thread_create (file_name, PRI_DEFAULT, start_process, fn_copy);
   if (tid == TID_ERROR)

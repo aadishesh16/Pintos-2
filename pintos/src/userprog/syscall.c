@@ -189,7 +189,7 @@ sys_halt(void)
 void
 sys_exit(int status)
 {
-  printf("This is the final countdown\n");
+  printf("Exit Status = %d", &status);
 }
 
 /*Runs the executable whose name is given in cmd_line, passing any given arguments, 

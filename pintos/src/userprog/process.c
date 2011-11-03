@@ -215,11 +215,11 @@ load (const char *file_name, void (**eip) (void), void **esp)
   off_t file_ofs;
   bool success = false;
   int i;
-  char *s = file_name;
-  char *commandName, *save_ptr, *argtok;
+  //char *s = file_name;
+  char *commandName, *save_ptr, *argtok, *savearg;
 
   // Get the command, for example "echo"
-  commandName = strtok_r(s, " ", &save_ptr);
+  commandName = strtok_r(file_name, " ", &save_ptr);
 
   /* Allocate and activate page directory. */
   t->pagedir = pagedir_create ();
@@ -312,9 +312,22 @@ load (const char *file_name, void (**eip) (void), void **esp)
   if (!setup_stack (esp))
     goto done;
 
-  for (argtok = strtok_r(s, " ", &save_ptr); argtok != NULL;
+  i = 0;
+  for (argtok = strtok_r(file_name, " ", &save_ptr); argtok != NULL;
         argtok = strtok_r(NULL, " ", &save_ptr))
+  {
+    savearg[i] = argtok;
+    i++;
+  }
 
+
+  //push address of string plus a null pointer on the stack
+  //in right to left order
+  //
+  //How push onto stack?
+  for(;i>=0;i--){
+
+  }
 
   /* Start address. */
   *eip = (void (*) (void)) ehdr.e_entry;

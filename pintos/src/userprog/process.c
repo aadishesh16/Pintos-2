@@ -354,20 +354,21 @@ load (const char *file_name, void (**eip) (void), void **esp)
   //
   //EXP: 'echo\0' = 5
 
-  unsigned int * saveesp;
+  i--;
+  uint32_t * saveesp;
   for(;i>=0;i--){
-    saveesp[i] = stack_push(*esp, savearg[i], (strlen(savearg[i]) + 1));
+    saveesp[i] = (uint32_t)stack_push(*esp, savearg[i], (strlen(savearg[i]) + 1));
   }
 
-  unsigned int * add;
+  uint32_t  add;
   *esp = *esp - 4;
   // Push addresses onto stack
-  for(i = count; i>= 0; i--){
+  for(i = count - 1; i>= 0; i--){
 
     if(i>0)
       stack_push(*esp, saveesp[i], sizeof(void *));
     else
-      add = stack_push(*esp, saveesp[i], sizeof(void *));
+      add = (uint32_t)stack_push(*esp, saveesp[i], sizeof(void *));
   }
 
   // argc
@@ -523,7 +524,7 @@ setup_stack (void **esp)
     {
       success = install_page (((uint8_t *) PHYS_BASE) - PGSIZE, kpage, true);
       if (success)
-        *esp = PHYS_BASE - 12;
+        *esp = PHYS_BASE;
       else
         palloc_free_page (kpage);
     }

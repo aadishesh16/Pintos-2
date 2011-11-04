@@ -386,18 +386,6 @@ void
   dest = dest - size;
   return dest;
 }
-
-/* Copies a byte from user addresses USRC to kernel address DST. */
-// not working correctly here.....
-/*static inline bool
-stack_push(uint8_t * dst, const uint8_t *usrc)
-{
-  int eax;
-  asm ("movl $1f, %%eax; movb %2, %%al; movb %%al, %0; 1:"
-        : "=m" (*dst), "=%a" (eax) : "m" (*usrc));
-  return eax != 0;
-}*/
-
 
 /* load() helpers. */
 

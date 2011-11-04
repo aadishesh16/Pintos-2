@@ -21,7 +21,7 @@
 static thread_func start_process NO_RETURN;
 static bool load (const char *cmdline, void (**eip) (void), void **esp);
 
-void *stack_push(void * dest, void * src, int size);
+void *stack_push(void ** dest, void * src, int size);
 
 
 /* Starts a new thread running a user program loaded from
@@ -34,8 +34,8 @@ process_execute (const char *file_name)
   char *fn_copy;
   tid_t tid;
   //struct exec_info exec;
-  char thread_name[15];
-  char *save_ptr;
+  //char thread_name[15];
+  //char *save_ptr;
 
   /* Initialize exec_info */
   //exec.file_name = file_name;
@@ -242,8 +242,7 @@ load (const char *file_name, void (**eip) (void), void **esp)
   off_t file_ofs;
   bool success = false;
   int i;
-  //char *s = file_name;
-  char *commandName, *save_ptr, *argtok, *savearg;
+  char *commandName, *save_ptr, * argtok, *savearg[256];
 
   // Get the command, for example "echo"
   commandName = strtok_r(file_name, " ", &save_ptr);
@@ -339,8 +338,9 @@ load (const char *file_name, void (**eip) (void), void **esp)
   if (!setup_stack (esp))
     goto done;
 
-  i = 1;
+  i = 0;
   savearg[0] = commandName;
+  argtok = commandName;
   for (; argtok != NULL;
         argtok = strtok_r(NULL, " ", &save_ptr))
   {
@@ -353,28 +353,30 @@ load (const char *file_name, void (**eip) (void), void **esp)
   //in right to left order
   //
   //EXP: 'echo\0' = 5
-
   i--;
-  uint32_t * saveesp;
+  uint32_t saveesp[256];
   for(;i>=0;i--){
-    saveesp[i] = (uint32_t)stack_push(*esp, savearg[i], (strlen(savearg[i]) + 1));
+    saveesp[i] = (uint32_t)stack_push(esp, savearg[i], (strlen(savearg[i]) + 1));
   }
 
   uint32_t  add;
   *esp = *esp - 4;
   // Push addresses onto stack
-  for(i = count - 1; i>= 0; i--){
-
+  //
+  for(i = count - 1; i>=0; i--){
     if(i>0)
-      stack_push(*esp, saveesp[i], sizeof(void *));
-    else
-      add = (uint32_t)stack_push(*esp, saveesp[i], sizeof(void *));
+    {
+      stack_push(esp, saveesp[i], sizeof(void *));
+    }
+    else if (i == 0){
+      add = (uint32_t)stack_push(esp, saveesp[i], sizeof(void *));
+    }
   }
 
   // argc
-  stack_push(*esp, add, sizeof(void *));
+  stack_push(esp, &add, sizeof(void *));
   // argc (size)
-  stack_push(*esp, count, sizeof(int));
+  stack_push(esp, &count, sizeof(int));
   *esp = *esp - 4;
 
   /* Start address. */
@@ -389,19 +391,23 @@ load (const char *file_name, void (**eip) (void), void **esp)
 }
 
 void
-*stack_push(void * dest, void * src, int size)
+*stack_push(void ** dest, void * src, int size)
 {
   int buff;
 
   buff = ROUND_UP(size, 4);
 
-  dest = dest - buff;
+  *dest = *dest - buff;
 
-  while (size-- > 0)
-    *(char *)dest++ = *(char *)src++;
-
-  dest = dest - size;
-  return dest;
+  int i;
+  for(i = 0; i < size; i++)
+  {
+    **(char **)dest = *(char *)src;
+    *dest = *dest + 1;
+    src = src + 1;
+  }
+  *dest = *dest - size;
+  return *dest;
 }
 /* load() helpers. */
 

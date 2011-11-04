@@ -351,7 +351,7 @@ load (const char *file_name, void (**eip) (void), void **esp)
   //push address of string plus a null pointer on the stack
   //in right to left order
   //
-  //EXP: 'echo\0'
+  //EXP: 'echo\0' = 5
 
   unsigned int * saveesp;
   int x = 0;

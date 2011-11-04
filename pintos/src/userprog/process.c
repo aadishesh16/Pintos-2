@@ -386,7 +386,6 @@ void
   dest = dest - size;
   return dest;
 }
-
 /* load() helpers. */
 
 static bool install_page (void *upage, void *kpage, bool writable);

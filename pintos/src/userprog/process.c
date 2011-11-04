@@ -361,6 +361,7 @@ load (const char *file_name, void (**eip) (void), void **esp)
 
   unsigned int * add;
   *esp = *esp - 4;
+  // Push addresses onto stack
   for(i = count; i>= 0; i--){
 
     if(i>0)
@@ -369,7 +370,9 @@ load (const char *file_name, void (**eip) (void), void **esp)
       add = stack_push(*esp, saveesp[i], sizeof(void *));
   }
 
+  // argc
   stack_push(*esp, add, sizeof(void *));
+  // argc (size)
   stack_push(*esp, count, sizeof(int));
   *esp = *esp - 4;
 

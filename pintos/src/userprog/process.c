@@ -20,6 +20,9 @@
 
 static thread_func start_process NO_RETURN;
 static bool load (const char *cmdline, void (**eip) (void), void **esp);
+static inline bool
+stack_push(uint8_t * dst, const uint8_t *usrc);
+
 
 /* Starts a new thread running a user program loaded from
    FILENAME.  The new thread may be scheduled (and may even exit)
@@ -344,13 +347,12 @@ load (const char *file_name, void (**eip) (void), void **esp)
     i++;
   }
 
-
   //push address of string plus a null pointer on the stack
   //in right to left order
   //
   //How push onto stack?
   for(;i>=0;i--){
-
+    stack_push(*esp, savearg[i]);
   }
 
   /* Start address. */
@@ -363,6 +365,18 @@ load (const char *file_name, void (**eip) (void), void **esp)
   file_close (file);
   return success;
 }
+
+/* Copies a byte from user addresses USRC to kernel address DST. */
+// not working correctly here.....
+static inline bool
+stack_push(uint8_t * dst, const uint8_t *usrc)
+{
+  int eax;
+  asm ("movl $1f, %%eax; movb %2, %%al; movb %%al, %0; 1:"
+        : "=m" (*dst), "=%a" (eax) : "m" (*usrc));
+  return eax != 0;
+}
+
 
 /* load() helpers. */
 

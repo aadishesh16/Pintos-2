@@ -347,6 +347,7 @@ load (const char *file_name, void (**eip) (void), void **esp)
     savearg[i] = argtok;
     i++;
   }
+  int count = i;
 
   //push address of string plus a null pointer on the stack
   //in right to left order
@@ -354,11 +355,23 @@ load (const char *file_name, void (**eip) (void), void **esp)
   //EXP: 'echo\0' = 5
 
   unsigned int * saveesp;
-  int x = 0;
   for(;i>=0;i--){
-    saveesp[x] = stack_push(*esp, savearg[i], (strlen(savearg[i]) + 1));
-    x++;
+    saveesp[i] = stack_push(*esp, savearg[i], (strlen(savearg[i]) + 1));
   }
+
+  unsigned int * add;
+  *esp = *esp - 4;
+  for(i = count; i>= 0; i--){
+
+    if(i>0)
+      stack_push(*esp, saveesp[i], sizeof(void *));
+    else
+      add = stack_push(*esp, saveesp[i], sizeof(void *));
+  }
+
+  stack_push(*esp, add, sizeof(void *));
+  stack_push(*esp, count, sizeof(int));
+  *esp = *esp - 4;
 
   /* Start address. */
   *eip = (void (*) (void)) ehdr.e_entry;

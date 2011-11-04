@@ -20,8 +20,8 @@
 
 static thread_func start_process NO_RETURN;
 static bool load (const char *cmdline, void (**eip) (void), void **esp);
-static inline bool
-stack_push(uint8_t * dst, const uint8_t *usrc);
+
+void *stack_push(void * dest, void * src, int size);
 
 
 /* Starts a new thread running a user program loaded from
@@ -339,8 +339,9 @@ load (const char *file_name, void (**eip) (void), void **esp)
   if (!setup_stack (esp))
     goto done;
 
-  i = 0;
-  for (argtok = strtok_r(file_name, " ", &save_ptr); argtok != NULL;
+  i = 1;
+  savearg[0] = commandName;
+  for (; argtok != NULL;
         argtok = strtok_r(NULL, " ", &save_ptr))
   {
     savearg[i] = argtok;
@@ -350,9 +351,13 @@ load (const char *file_name, void (**eip) (void), void **esp)
   //push address of string plus a null pointer on the stack
   //in right to left order
   //
-  //How push onto stack?
+  //EXP: 'echo\0'
+
+  unsigned int * saveesp;
+  int x = 0;
   for(;i>=0;i--){
-    stack_push(*esp, savearg[i]);
+    saveesp[x] = stack_push(*esp, savearg[i], (strlen(savearg[i]) + 1));
+    x++;
   }
 
   /* Start address. */
@@ -366,16 +371,32 @@ load (const char *file_name, void (**eip) (void), void **esp)
   return success;
 }
 
+void
+*stack_push(void * dest, void * src, int size)
+{
+  int buff;
+
+  buff = ROUND_UP(size, 4);
+
+  dest = dest - buff;
+
+  while (size-- > 0)
+    *(char *)dest++ = *(char *)src++;
+
+  dest = dest - size;
+  return dest;
+}
+
 /* Copies a byte from user addresses USRC to kernel address DST. */
 // not working correctly here.....
-static inline bool
+/*static inline bool
 stack_push(uint8_t * dst, const uint8_t *usrc)
 {
   int eax;
   asm ("movl $1f, %%eax; movb %2, %%al; movb %%al, %0; 1:"
         : "=m" (*dst), "=%a" (eax) : "m" (*usrc));
   return eax != 0;
-}
+}*/
 
 
 /* load() helpers. */

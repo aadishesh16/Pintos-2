@@ -209,8 +209,13 @@ sys_create(const char *file, unsigned initial_size)
 bool
 sys_remove(const char *file)
 {
-  printf("sys_remove\n");
-  return false;
+  if(!file){
+    return false;
+  }
+  if(!is_user_vaddr(file)){
+    sys_exit(-1);
+  }
+  return filesys_remove(file);
 }
 
 /*Opens the file called file. Returns a nonnegative integer handle called a 
@@ -276,7 +281,7 @@ sys_filesize(int fd)
   f = find_file(fd);
 
   if (f == NULL)
-    return -1;
+    return -1; //break
   size = file_length(f);
   return size;
 }
@@ -322,7 +327,13 @@ sys_write(int fd, const void *buffer, unsigned size)
 void
 sys_seek(int fd, unsigned position)
 {
-  printf("sys_seek\n");
+  struct file_descriptor * f;
+
+  f = find_file(fd);
+
+  if(f == NULL)
+    return;
+  file_seek(f, position);
 }
 
 /*Returns the position of the next byte to be read or written in open file fd, expressed 
@@ -330,8 +341,13 @@ sys_seek(int fd, unsigned position)
 unsigned
 sys_tell(int fd)
 {
-  printf("sys_tell\n");
-  return -1;
+  struct file_descritor * f;
+
+  f = find_file(fd);
+
+  if(f == NULL)
+    return;
+  return file_tell(f);
 }
 
 /*Closes file descriptor fd. Exiting or terminating a process implicitly closes all its 
@@ -339,5 +355,11 @@ sys_tell(int fd)
 void
 sys_close(int fd)
 {
-  printf("sys_close\n");
+  struct file_descripter * f;
+  f = find_file(fd);
+
+  if(f == NULL)
+    return;
+  file_close(f);
+  free(f);
 }

@@ -12,7 +12,6 @@
 #include <string.h>
 #include "devices/shutdown.h"
 
-
 static void syscall_handler (struct intr_frame *);
 
 static void copy_in(void* dest, void* src, int size);
@@ -96,10 +95,6 @@ syscall_handler (struct intr_frame *f)
   };
 
   /* Table of system calls. */
-  // Not done....?
-  // warning 'static' is not at beginning of declaration
-  // error: two or more data types in declaration specs
-  // This is the code he gave us......
   static const struct syscall syscall_table[] =
   {
     {0, (syscall_function *) sys_halt},
@@ -121,7 +116,6 @@ syscall_handler (struct intr_frame *f)
   unsigned call_nr;
   int args[3];
   /* Get the system call. */
-  // I think we have to write a copy_in function
   copy_in (&call_nr, f->esp, sizeof call_nr);
   if (call_nr >= sizeof syscall_table / sizeof *syscall_table)
     thread_exit();

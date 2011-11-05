@@ -244,12 +244,41 @@ sys_open(const char *ufile)
   return handle;
 }
 
+
+/* Searches the current threads file descriptor list
+ * for the file holding onto the given handle
+ */
+struct file *
+find_file(int fd){
+  struct list_elem * ls;
+  struct thread * cur = thread_current();
+  struct file_descriptor * rf;
+
+  for (ls = list_begin(&cur->fds); ls != list_end(&cur->fds); ls = list_next(ls)){
+    rf = list_entry(ls, struct file_descriptor, elem);
+    if (rf->handle = fd){
+      return rf;
+    }
+  }
+  return NULL;
+}
+
 /*Returns the size, in bytes, of the file open as fd.*/
 int
 sys_filesize(int fd)
 {
-  printf("sys_filesize\n");
-  return -1;
+  int size;
+  struct file_descriptor * f;
+  struct list_elem * ls;
+
+  // look through some file list to find open file?
+  // then set equal to file descriptor and find size
+  f = find_file(fd);
+
+  if (f == NULL)
+    return -1;
+  size = file_length(f);
+  return size;
 }
 
 /*Reads size bytes from the file open as fd into buffer. Returns the number of bytes

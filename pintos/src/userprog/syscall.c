@@ -12,9 +12,10 @@
 #include <string.h>
 #include "devices/shutdown.h"
 
+
 static void syscall_handler (struct intr_frame *);
 
-void copy_in(void* dest, void* src, int size);
+static void copy_in(void* dest, void* src, int size);
 void sys_halt(void);
 void sys_exit(int status);
 pid_t sys_exec(const char *cmd_line);
@@ -82,7 +83,7 @@ copy_in_string (const char *us)
 static void
 syscall_handler (struct intr_frame *f) 
 {
-  //printf ("system call!\n");
+  printf ("system call!\n");
   //thread_exit ();
 
   typedef int syscall_function (int, int, int);
@@ -125,6 +126,7 @@ syscall_handler (struct intr_frame *f)
   if (call_nr >= sizeof syscall_table / sizeof *syscall_table)
     thread_exit();
   sc = syscall_table + call_nr;
+  printf("syscall = %d\n\n", call_nr);
 
   /* Get the system call arguments. */
   ASSERT (sc->arg_cnt <= sizeof args / sizeof *args);
@@ -135,14 +137,14 @@ syscall_handler (struct intr_frame *f)
   f->eax = sc->func (args[0], args[1], args[2]);
 }
 
-void
+static void
 copy_in(void* dest, void* src, int size)
 {
-  ASSERT (dest != NULL || size == 0);
-  ASSERT (src != NULL || size == 0);
+  //ASSERT (dest != NULL || size == 0);
+  //ASSERT (src != NULL || size == 0);
 
-  while (size-- > 0)
-    *(char *)dest++ = *(char *)src++;
+  for (; size > 0; size--, dest++, src++)
+    *(char *)dest = *(char *)src;
 }
 
 /*int
@@ -202,7 +204,7 @@ pid_t
 sys_exec(const char *cmd_line)
 {
   printf("sys_exec\n");
-  return NULL;
+  return -1;
 }
 
 
@@ -219,7 +221,7 @@ int
 sys_wait(pid_t pid)
 {
   printf("sys_wait\n");
-  return 0;
+  return -1;
 }
 
 
@@ -241,7 +243,7 @@ bool
 sys_remove(const char *file)
 {
   printf("sys_remove\n");
-  return NULL;
+  return false;
 }
 
 /*Opens the file called file. Returns a nonnegative integer handle called a 
@@ -252,7 +254,7 @@ int
 sys_open(const char *file)
 {
   printf("sys_open\n");
-  return 0;
+  return -1;
 }
 
 /*Returns the size, in bytes, of the file open as fd.*/
@@ -260,7 +262,7 @@ int
 sys_filesize(int fd)
 {
   printf("sys_filesize\n");
-  return 0;
+  return -1;
 }
 
 /*Reads size bytes from the file open as fd into buffer. Returns the number of bytes
@@ -270,7 +272,7 @@ int
 sys_read(int fd, void *buffer, unsigned size)
 {
   printf("sys_read\n");
-  return 0;
+  return -1;
 }
 
 /*Writes size bytes from buffer to the open file fd. Returns the number of bytes actually
@@ -287,8 +289,8 @@ sys_read(int fd, void *buffer, unsigned size)
 int
 sys_write(int fd, const void *buffer, unsigned size)
 {
-  printf("sys_write\n");
-  return 0;
+  putbuf(buffer, size);
+  return size;
 }
 
 /*Changes the next byte to be read or written in open file fd to position, expressed in bytes 
@@ -311,7 +313,7 @@ unsigned
 sys_tell(int fd)
 {
   printf("sys_tell\n");
-  return NULL;
+  return -1;
 }
 
 /*Closes file descriptor fd. Exiting or terminating a process implicitly closes all its 

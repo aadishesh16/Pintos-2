@@ -67,8 +67,10 @@ process_execute (const char *file_name)
   strlcpy (fn_copy, file_name, PGSIZE);
   /* Create a new thread to execute FILE_NAME. */
   tid = thread_create (file_name, PRI_DEFAULT, start_process, fn_copy);
+  printf("Thread created\n\n");
   if (tid == TID_ERROR)
     palloc_free_page (fn_copy); 
+  printf("Bottom of process exit\n\n");
   return tid;
 }
 
@@ -99,6 +101,7 @@ start_process (void *file_name_)
      arguments on the stack in the form of a `struct intr_frame',
      we just point the stack pointer (%esp) to our stack frame
      and jump to it. */
+  printf("End of start_process\n\n");
   asm volatile ("movl %0, %%esp; jmp intr_exit" : : "g" (&if_) : "memory");
   NOT_REACHED ();
 }
@@ -125,6 +128,8 @@ process_exit (void)
 {
   struct thread *cur = thread_current ();
   uint32_t *pd;
+
+  //printf("%s: exit(%d)\n", cur->name, cur->wait_status->exit);
 
   /* Destroy the current process's page directory and switch back
      to the kernel-only page directory. */
@@ -345,9 +350,11 @@ load (const char *file_name, void (**eip) (void), void **esp)
         argtok = strtok_r(NULL, " ", &save_ptr))
   {
     savearg[i] = argtok;
+    printf("savearg[%d] = %s\n", i, savearg[i]);
     i++;
   }
   int count = i;
+  printf("\n");
 
   //push address of string plus a null pointer on the stack
   //in right to left order
@@ -357,27 +364,29 @@ load (const char *file_name, void (**eip) (void), void **esp)
   uint32_t saveesp[256];
   for(;i>=0;i--){
     saveesp[i] = (uint32_t)stack_push(esp, savearg[i], (strlen(savearg[i]) + 1));
+    printf("savearg %s: %x\n", savearg[i], saveesp[i]);
   }
-
+  printf("\n\n");
   uint32_t  add;
   *esp = *esp - 4;
   // Push addresses onto stack
   //
   for(i = count - 1; i>=0; i--){
-    if(i>0)
-    {
-      stack_push(esp, saveesp[i], sizeof(void *));
-    }
-    else if (i == 0){
-      add = (uint32_t)stack_push(esp, saveesp[i], sizeof(void *));
-    }
+    stack_push(esp, saveesp[i], sizeof(void *));
+    printf("esp %x: %x\n",*esp, saveesp[i]);
   }
 
   // argc
+  // Catch the final address
+  add = (uint32_t)*esp;
   stack_push(esp, &add, sizeof(void *));
+  printf("\nesp %x: %x\n", *esp, add);
   // argc (size)
   stack_push(esp, &count, sizeof(int));
+  printf("\nArg Count: %d\n", count);
   *esp = *esp - 4;
+
+  printf("\nesp: %x\n\n", *esp);
 
   /* Start address. */
   *eip = (void (*) (void)) ehdr.e_entry;

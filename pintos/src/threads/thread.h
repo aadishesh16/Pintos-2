@@ -118,6 +118,18 @@ struct thread
     struct list fds;
   };
 
+
+/* thread wait status */
+struct wait_status{
+  struct list_elem elem;
+  struct lock lock;
+  int ref_count;
+
+  tid_t tid;
+  int exit;
+  struct semaphore dead;
+};
+
 /* If false (default), use round-robin scheduler.
    If true, use multi-level feedback queue scheduler.
    Controlled by kernel command-line option "-o mlfqs". */

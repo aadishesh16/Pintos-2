@@ -151,7 +151,7 @@ sys_open(const char *ufile)
   fd = malloc (sizeof *fd);
   if (fd != NULL)
   {
-    //lock_acquire (&fs_lock); // not defined....?
+    lock_acquire (&fs_lock); // not defined....?
     fd->file = filesys_open (kfile);
     if (fd->file != NULL) // error dereferencing pointer to incomplete type
     {
@@ -162,7 +162,7 @@ sys_open(const char *ufile)
     }
     else
       free (fd);
-    //lock_release (&fs_lock);
+    lock_release (&fs_lock);
   }
 
   palloc_free_page (kfile);
@@ -185,7 +185,7 @@ sys_halt(void)
 void
 sys_exit(int status)
 {
-  printf("Exit Status = %d", &status);
+  thread_exit();
 }
 
 /*Runs the executable whose name is given in cmd_line, passing any given arguments, 
@@ -215,7 +215,8 @@ int
 sys_wait(pid_t pid)
 {
   printf("sys_wait\n");
-  return -1;
+  int wait = process_wait(pid);
+  return wait;
 }
 
 
@@ -283,9 +284,10 @@ sys_read(int fd, void *buffer, unsigned size)
 int
 sys_write(int fd, const void *buffer, unsigned size)
 {
-  putbuf(buffer, size);
-  printf("fd = %d\n", fd);
-  return size;
+  if (fd == 1){
+    putbuf(buffer, size);
+  }
+  return 0;
 }
 
 /*Changes the next byte to be read or written in open file fd to position, expressed in bytes 

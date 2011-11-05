@@ -116,6 +116,8 @@ struct thread
 
     /* file descriptors*/
     struct list fds;
+
+    struct wait_status * wait_status;
   };
 
 

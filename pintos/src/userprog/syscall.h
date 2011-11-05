@@ -3,18 +3,17 @@
 
 #include <list.h>
 #include "lib/user/syscall.h"
+#include "filesys/filesys.h"
 
 void syscall_init (void);
 
 int
 sys_open(const char *ufile);
 
-/*struct file_descriptor
+struct file_descriptor
 {
   int handle;
-  //string file?
-  
-  struct listelem elem;
-};*/
-
+  struct file * file;
+  struct list_elem elem;
+};
 #endif /* userprog/syscall.h */

@@ -290,6 +290,7 @@ int
 sys_write(int fd, const void *buffer, unsigned size)
 {
   putbuf(buffer, size);
+  printf("fd = %d\n", fd);
   return size;
 }
 

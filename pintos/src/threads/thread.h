@@ -25,6 +25,18 @@ typedef int tid_t;
 #define PRI_DEFAULT 31                  /* Default priority. */
 #define PRI_MAX 63                      /* Highest priority. */
 
+/* thread wait status */
+struct wait_status{
+  struct list_elem elem;
+  struct lock lock;
+  int ref_count;
+
+  tid_t tid;
+  int exit;
+  struct semaphore dead;
+};
+
+
 /* A kernel thread or user process.
 
    Each thread structure is stored in its own 4 kB page.  The
@@ -118,19 +130,9 @@ struct thread
     struct list fds;
 
     struct wait_status * wait_status;
+    struct wait_status w;
   };
 
-
-/* thread wait status */
-struct wait_status{
-  struct list_elem elem;
-  struct lock lock;
-  int ref_count;
-
-  tid_t tid;
-  int exit;
-  struct semaphore dead;
-};
 
 /* If false (default), use round-robin scheduler.
    If true, use multi-level feedback queue scheduler.

@@ -4,11 +4,14 @@
 #include <list.h>
 #include "lib/user/syscall.h"
 #include "filesys/filesys.h"
+#include "threads/synch.h"
 
 void syscall_init (void);
 
 int
 sys_open(const char *ufile);
+
+struct lock fs_lock;
 
 struct file_descriptor
 {

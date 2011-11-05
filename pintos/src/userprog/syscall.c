@@ -141,34 +141,6 @@ copy_in(void* dest, void* src, int size)
     *(char *)dest = *(char *)src;
 }
 
-/*int
-sys_open(const char *ufile)
-{
-  char *kfile = copy_in_string (ufile);
-  struct file_descriptor *fd;
-  int handle = -1;
-
-  fd = malloc (sizeof *fd);
-  if (fd != NULL)
-  {
-    lock_acquire (&fs_lock); // not defined....?
-    fd->file = filesys_open (kfile);
-    if (fd->file != NULL) // error dereferencing pointer to incomplete type
-    {
-      // more errors here....
-      struct thread *cur = thread_current ();
-      handle = fd->handle = cur->next_handle++;
-      list_push_front (&cur->fds, &fd->elem);
-    }
-    else
-      free (fd);
-    lock_release (&fs_lock);
-  }
-
-  palloc_free_page (kfile);
-  return handle;
-}*/
-
 /*Terminates Pintos by calling power_off() (declared in threads/init.h). 
  * This should be seldom used, because you lose some information about 
  * possible deadlock situations, etc.*/
@@ -246,10 +218,30 @@ sys_remove(const char *file)
  *
  * more in pdf....*/
 int
-sys_open(const char *file)
+sys_open(const char *ufile)
 {
-  printf("sys_open\n");
-  return -1;
+  char *kfile = copy_in_string (ufile);
+  struct file_descriptor *fd;
+  int handle = -1;
+
+  fd = malloc (sizeof *fd);
+  if (fd != NULL)
+  {
+    lock_acquire (&fs_lock); // not defined....?
+    fd->file = filesys_open (kfile);
+    if (fd->file != NULL) // error dereferencing pointer to incomplete type
+    {
+      struct thread *cur = thread_current ();
+      handle = fd->handle = cur->next_handle++;
+      list_push_front (&cur->fds, &fd->elem);
+    }
+    else
+      free (fd);
+    lock_release (&fs_lock);
+  }
+
+  palloc_free_page (kfile);
+  return handle;
 }
 
 /*Returns the size, in bytes, of the file open as fd.*/

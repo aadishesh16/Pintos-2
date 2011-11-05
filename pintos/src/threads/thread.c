@@ -608,8 +608,7 @@ init_thread (struct thread *t, const char *name, int priority)
   t->priority = priority;
   t->base_priority = priority;
 
-  struct wait_status * w;
-  t->wait_status = w;
+  t->wait_status = &t->w;
 
   t->magic = THREAD_MAGIC;
   // Initialize semaphore

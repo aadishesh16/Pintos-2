@@ -227,9 +227,9 @@ sys_open(const char *ufile)
   fd = malloc (sizeof *fd);
   if (fd != NULL)
   {
-    lock_acquire (&fs_lock); // not defined....?
+    lock_acquire (&fs_lock);
     fd->file = filesys_open (kfile);
-    if (fd->file != NULL) // error dereferencing pointer to incomplete type
+    if (fd->file != NULL)
     {
       struct thread *cur = thread_current ();
       handle = fd->handle = cur->next_handle++;

@@ -171,8 +171,19 @@ sys_exit(int status)
 pid_t
 sys_exec(const char *cmd_line)
 {
-  printf("sys_exec\n");
-  return -1;
+  pid_t ret;
+
+  if(!cmd_line || !is_user_vaddr(cmd_line))
+  {
+    return -1;
+  }
+  else
+  {
+    lock_acquire(&fs_lock);
+    ret = process_execute(cmd_line);
+    lock_release(&fs_lock);
+    return ret;
+  }
 }
 
 

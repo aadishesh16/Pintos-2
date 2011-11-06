@@ -175,15 +175,16 @@ sys_exec(const char *cmd_line)
 
   if(!cmd_line || !is_user_vaddr(cmd_line))
   {
-    return -1;
+    ret = -1;
   }
   else
   {
     lock_acquire(&fs_lock);
     ret = process_execute(cmd_line);
     lock_release(&fs_lock);
-    return ret;
   }
+
+  return ret;
 }
 
 

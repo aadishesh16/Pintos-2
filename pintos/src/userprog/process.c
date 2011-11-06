@@ -117,12 +117,13 @@ process_wait (tid_t child_tid UNUSED)
   if(t != NULL){
     sema_down(&t->wait_status->dead);
     handle = t->wait_status->exit;
-    release_child(t);
+    list_remove(&t->wait_status->elem);
   }
 
   return handle;
 }
 
+<<<<<<< HEAD
 /* Release the child */
 void
 release_child(struct thread * t)
@@ -130,6 +131,8 @@ release_child(struct thread * t)
 
 }
 
+=======
+>>>>>>> 686dc8c3412d8272c25b88cef59561d20969b938
 /* Free the current process's resources. */
 void
 process_exit (void)

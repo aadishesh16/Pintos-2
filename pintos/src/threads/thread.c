@@ -747,9 +747,10 @@ find_thread(tid_t tid){
 
   for (f = list_begin(&t->children); f != list_end(&t->children); f = list_next(f)){
     ans = list_entry(f, struct thread, allelem);
-    ASSERT(is_thread(ans));
+    //ASSERT(is_thread(ans));
     if(ans->tid == tid){
       return ans;
     }
   }
+  return NULL;
 }

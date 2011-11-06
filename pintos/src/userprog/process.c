@@ -123,16 +123,6 @@ process_wait (tid_t child_tid UNUSED)
   return handle;
 }
 
-<<<<<<< HEAD
-/* Release the child */
-void
-release_child(struct thread * t)
-{
-
-}
-
-=======
->>>>>>> 686dc8c3412d8272c25b88cef59561d20969b938
 /* Free the current process's resources. */
 void
 process_exit (void)

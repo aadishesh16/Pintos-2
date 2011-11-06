@@ -4,8 +4,7 @@
 int
 main (int argc, char **argv)
 {
-  int i;
-
+  printf("Begin Tests\n\n\n\n");
   bool lawl = create("newfile.txt", 1);
 
   if(lawl) printf("File created!!\n\n");

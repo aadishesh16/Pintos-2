@@ -342,11 +342,11 @@ sys_write(int fd, const void *buffer, unsigned size)
   int ans;
 
   lock_acquire(&fs_lock);
-  if (fd == STDIN_FILENO){
+  if (fd == STDOUT_FILENO){
     putbuf(buffer, size);
     ans = size;
   }
-  else if (fd == STDOUT_FILENO){
+  else if (fd == STDIN_FILENO){
     ans = -1;
   }
   else{

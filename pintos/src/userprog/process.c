@@ -74,6 +74,7 @@ start_process (void * execp)
   struct exec_info *exec = execp;
   struct intr_frame if_;
   bool success;
+  char *commandName, *save_ptr, * argtok, *savearg[256];
 
 
   /* Initialize interrupt frame and load executable. */
@@ -335,6 +336,8 @@ load (const char *file_name, void (**eip) (void), void **esp)
   /* Set up stack. */
   if (!setup_stack (esp))
     goto done;
+
+  printf("Setup stack esp: %x\n\n\n", esp);
 
   i = 0;
   for (argtok = strtok_r(file_name, " ", &save_ptr); argtok != NULL;

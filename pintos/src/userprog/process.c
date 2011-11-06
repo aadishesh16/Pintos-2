@@ -31,22 +31,29 @@ void *stack_push(void ** dest, void * src, int size);
 tid_t
 process_execute (const char *file_name) 
 {
-  char *fn_copy;
+  struct exec_info exec;
+  char thread_name[15];
+  char *save_ptr;
   tid_t tid;
-  //struct exec_info exec;
-  //char thread_name[15];
-  //char *save_ptr;
+  struct wait_status wait;
 
   /* Initialize exec_info */
-  //exec.file_name = file_name;
-  //sema_init (&exec.load_done, 0);
+  exec.file_name = file_name;
+  exec.wait_status = &wait;
+
+  sema_init (&exec.load_done, 0);
 
   /* Create a new thread to execute FILE_NAME;*/
-  /*
+  
   strlcpy(thread_name, file_name, sizeof thread_name);
   strtok_r (thread_name, " ", &save_ptr);
+  sema_init(&exec.load_done, 0);
   tid = thread_create (thread_name, PRI_DEFAULT, start_process, &exec);
 
+  /* Starts a new thread running a user program loaded from
+   * FILENAME. The new thread may be schedule (and may even exit)
+   * before process_execute() returns. Returns the new process's
+   * thread id, or TID_ERROR if the thread cannot be created. */
   if (tid != TID_ERROR)
   {
     sema_down (&exec.load_done);
@@ -56,42 +63,31 @@ process_execute (const char *file_name)
     else
       tid = TID_ERROR;
   }
-  return tid;*/
-
-  /*Make a copy of FILE_NAME.
-     Otherwise there's a race between the caller and load(). */
-  
-  fn_copy = palloc_get_page (0);
-  if (fn_copy == NULL)
-    return TID_ERROR;
-  strlcpy (fn_copy, file_name, PGSIZE);
-  /* Create a new thread to execute FILE_NAME. */
-  tid = thread_create (file_name, PRI_DEFAULT, start_process, fn_copy);
-  printf("Thread created\n\n");
-  if (tid == TID_ERROR)
-    palloc_free_page (fn_copy); 
-  printf("Bottom of process exit\n\n");
   return tid;
 }
 
 /* A thread function that loads a user process and starts it
    running. */
 static void
-start_process (void *file_name_)
+start_process (void * execp)
 {
-  char *file_name = file_name_;
+  struct exec_info *exec = execp;
   struct intr_frame if_;
   bool success;
+
 
   /* Initialize interrupt frame and load executable. */
   memset (&if_, 0, sizeof if_);
   if_.gs = if_.fs = if_.es = if_.ds = if_.ss = SEL_UDSEG;
   if_.cs = SEL_UCSEG;
   if_.eflags = FLAG_IF | FLAG_MBS;
-  success = load (file_name, &if_.eip, &if_.esp);
+
+  success = load (exec->file_name, &if_.eip, &if_.esp);
 
   /* If load failed, quit. */
-  palloc_free_page (file_name);
+  exec->success = success;
+  sema_up(&exec->load_done);
+
   if (!success) 
     thread_exit ();
 
@@ -101,7 +97,6 @@ start_process (void *file_name_)
      arguments on the stack in the form of a `struct intr_frame',
      we just point the stack pointer (%esp) to our stack frame
      and jump to it. */
-  printf("End of start_process\n\n");
   asm volatile ("movl %0, %%esp; jmp intr_exit" : : "g" (&if_) : "memory");
   NOT_REACHED ();
 }
@@ -250,9 +245,6 @@ load (const char *file_name, void (**eip) (void), void **esp)
   int i;
   char *commandName, *save_ptr, * argtok, *savearg[256];
 
-  // Get the command, for example "echo"
-  commandName = strtok_r(file_name, " ", &save_ptr);
-
   /* Allocate and activate page directory. */
   t->pagedir = pagedir_create ();
   if (t->pagedir == NULL) 
@@ -261,7 +253,7 @@ load (const char *file_name, void (**eip) (void), void **esp)
 
   /* Open executable file. */
   // Pass in command name
-  file = filesys_open (commandName);
+  file = filesys_open (t->name);
   if (file == NULL) 
     {
       printf ("load: %s: open failed\n", file_name);
@@ -345,13 +337,11 @@ load (const char *file_name, void (**eip) (void), void **esp)
     goto done;
 
   i = 0;
-  savearg[0] = commandName;
-  argtok = commandName;
-  for (; argtok != NULL;
+  for (argtok = strtok_r(file_name, " ", &save_ptr); argtok != NULL;
         argtok = strtok_r(NULL, " ", &save_ptr))
   {
     savearg[i] = argtok;
-    printf("savearg[%d] = %s\n", i, savearg[i]);
+    printf("savearg[%d] loop = %s\n", i, savearg[i]);
     i++;
   }
   int count = i;

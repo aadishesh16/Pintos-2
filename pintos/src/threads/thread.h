@@ -36,6 +36,14 @@ struct wait_status{
   struct semaphore dead;
 };
 
+/* Exec info struct */
+struct exec_info{
+  bool success;
+  char * file_name;
+  struct semaphore load_done;
+  struct wait_status *wait_status;
+};
+
 
 /* A kernel thread or user process.
 
@@ -129,8 +137,12 @@ struct thread
     /* file descriptors*/
     struct list fds;
 
+    /* wait status */
     struct wait_status * wait_status;
     struct wait_status w;
+
+    /* children list */
+    struct list children;
   };
 
 

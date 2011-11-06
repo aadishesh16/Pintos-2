@@ -127,7 +127,7 @@ process_wait (tid_t child_tid UNUSED)
 void
 release_child(struct thread * t)
 {
-    
+
 }
 
 /* Free the current process's resources. */

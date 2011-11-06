@@ -69,7 +69,7 @@ copy_in_string (const char *us)
     thread_exit ();
   for (length = 0; length < PGSIZE; length++)
   {
-      if (us >= (char *) PHYS_BASE || !get_user (ks + length, us++)) //problem with get_user
+      if (us >= (char *) PHYS_BASE || !get_user (ks + length, us++))
       {
         palloc_free_page (ks);
         thread_exit ();

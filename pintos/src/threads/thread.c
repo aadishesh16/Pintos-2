@@ -738,12 +738,14 @@ uint32_t thread_stack_ofs = offsetof (struct thread, stack);
 
 struct thread *
 find_thread(tid_t tid){
+
   struct list_elem *f;
   struct thread *ans;
+  struct thread * t = thread_current();
 
   ans = NULL;
 
-  for (f = list_begin(&all_list); f != list_end(&all_list); f = list_next(f)){
+  for (f = list_begin(&t->children); f != list_end(&t->children); f = list_next(f)){
     ans = list_entry(f, struct thread, allelem);
     ASSERT(is_thread(ans));
     if(ans->tid == tid){

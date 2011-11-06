@@ -76,7 +76,6 @@ start_process (void * execp)
   struct intr_frame if_;
   bool success;
 
-
   /* Initialize interrupt frame and load executable. */
   memset (&if_, 0, sizeof if_);
   if_.gs = if_.fs = if_.es = if_.ds = if_.ss = SEL_UDSEG;
@@ -124,6 +123,7 @@ process_wait (tid_t child_tid UNUSED)
   return handle;
 }
 
+/* Release the child */
 void
 release_child(struct thread * t)
 {

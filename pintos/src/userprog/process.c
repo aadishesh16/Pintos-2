@@ -23,6 +23,7 @@ static bool load (const char *cmdline, void (**eip) (void), void **esp);
 
 void *stack_push(void ** dest, void * src, int size);
 
+void release_child(struct thread * t);
 
 /* Starts a new thread running a user program loaded from
    FILENAME.  The new thread may be scheduled (and may even exit)
@@ -74,7 +75,6 @@ start_process (void * execp)
   struct exec_info *exec = execp;
   struct intr_frame if_;
   bool success;
-  char *commandName, *save_ptr, * argtok, *savearg[256];
 
 
   /* Initialize interrupt frame and load executable. */
@@ -107,15 +107,27 @@ start_process (void * execp)
    exception), returns -1.  If TID is invalid or if it was not a
    child of the calling process, or if process_wait() has already
    been successfully called for the given TID, returns -1
-   immediately, without waiting.
-
-   This function will be implemented in problem 2-2.  For now, it
-   does nothing. */
+   immediately, without waiting. */
 int
 process_wait (tid_t child_tid UNUSED) 
 {
-  for(;;);
-  return -1;
+  int handle = -1;
+  struct thread *t;
+  t = find_thread(child_tid);
+
+  if(t != NULL){
+    sema_down(&t->wait_status->dead);
+    handle = t->wait_status->exit;
+    release_child(t);
+  }
+
+  return handle;
+}
+
+void
+release_child(struct thread * t)
+{
+    
 }
 
 /* Free the current process's resources. */
@@ -126,6 +138,7 @@ process_exit (void)
   uint32_t *pd;
 
   printf("%s: exit(%d)\n", cur->name, cur->wait_status->exit);
+  sema_up(&cur->wait_status->dead);
 
   /* Destroy the current process's page directory and switch back
      to the kernel-only page directory. */
@@ -245,6 +258,9 @@ load (const char *file_name, void (**eip) (void), void **esp)
   int i;
   char *commandName, *save_ptr, * argtok, *savearg[256];
 
+  char * fileWin = palloc_get_page(0);
+  strlcpy(fileWin, file_name, PGSIZE);
+
   /* Allocate and activate page directory. */
   t->pagedir = pagedir_create ();
   if (t->pagedir == NULL) 
@@ -339,7 +355,7 @@ load (const char *file_name, void (**eip) (void), void **esp)
   printf("Setup stack esp: %x\n\n\n", esp);
 
   i = 0;
-  for (argtok = strtok_r(file_name, " ", &save_ptr); argtok != NULL;
+  for (argtok = strtok_r(fileWin, " ", &save_ptr); argtok != NULL;
         argtok = strtok_r(NULL, " ", &save_ptr))
   {
     savearg[i] = argtok;
@@ -365,7 +381,7 @@ load (const char *file_name, void (**eip) (void), void **esp)
   // Push addresses onto stack
   //
   for(i = count - 1; i>=0; i--){
-    stack_push(esp, saveesp[i], sizeof(void *));
+    stack_push(esp, &saveesp[i], sizeof(void *));
     printf("esp %x: %x\n",*esp, saveesp[i]);
   }
 
@@ -388,6 +404,7 @@ load (const char *file_name, void (**eip) (void), void **esp)
 
  done:
   /* We arrive here whether the load is successful or not. */
+  palloc_free_page(fileWin);
   file_close (file);
   return success;
 }

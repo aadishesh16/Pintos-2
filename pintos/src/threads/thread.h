@@ -202,5 +202,7 @@ thread_donor_priority(const struct list_elem *a_,
                         const struct list_elem *b_,
                           void *aux UNUSED);
 
+struct thread *
+find_thread(tid_t tid);
 
 #endif /* threads/thread.h */

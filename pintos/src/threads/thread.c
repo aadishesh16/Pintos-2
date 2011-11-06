@@ -71,6 +71,9 @@ static void schedule (void);
 void thread_schedule_tail (struct thread *prev);
 static tid_t allocate_tid (void);
 
+struct thread *
+find_thread(tid_t tid);
+
 bool
 thread_higher_priority (const struct list_elem *a_,
                         const struct list_elem *b_,
@@ -608,8 +611,10 @@ init_thread (struct thread *t, const char *name, int priority)
   t->priority = priority;
   t->base_priority = priority;
 
+
   t->wait_status = &t->w;
   list_init(&t->children);
+  sema_init(&t->wait_status->dead, 0);
 
   t->magic = THREAD_MAGIC;
   // Initialize semaphore
@@ -730,3 +735,19 @@ allocate_tid (void)
 /* Offset of `stack' member within `struct thread'.
    Used by switch.S, which can't figure it out on its own. */
 uint32_t thread_stack_ofs = offsetof (struct thread, stack);
+
+struct thread *
+find_thread(tid_t tid){
+  struct list_elem *f;
+  struct thread *ans;
+
+  ans = NULL;
+
+  for (f = list_begin(&all_list); f != list_end(&all_list); f = list_next(f)){
+    ans = list_entry(f, struct thread, allelem);
+    ASSERT(is_thread(ans));
+    if(ans->tid == tid){
+      return ans;
+    }
+  }
+}

@@ -5,6 +5,8 @@ int
 main (int argc, char **argv)
 {
   printf("Begin Tests\n\n\n\n");
+
+  printf("argc = %d\n\n\n", argc);
   bool lawl = create("newfile.txt", 1);
 
   if(lawl) printf("File created!!\n\n");

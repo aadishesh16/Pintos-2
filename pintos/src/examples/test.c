@@ -6,8 +6,13 @@ main (int argc, char **argv)
 {
   int i;
 
-  printf("argc: %d\n\n", argc);
-  printf ("\n");
+  bool lawl = create("newfile.txt", 1);
+
+  if(lawl) printf("File created!!\n\n");
+
+  bool rofl = remove("newfile.txt");
+
+  if (rofl) printf("File deleted!!!\n\n");
 
   return EXIT_SUCCESS;
 }

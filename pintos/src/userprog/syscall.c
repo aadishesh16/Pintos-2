@@ -11,6 +11,7 @@
 #include "threads/palloc.h"
 #include <string.h>
 #include "devices/shutdown.h"
+#include "devices/input.h"
 
 static void syscall_handler (struct intr_frame *);
 
@@ -34,6 +35,7 @@ void
 syscall_init (void) 
 {
   intr_register_int (0x30, 3, INTR_ON, syscall_handler, "syscall");
+  lock_init(&fs_lock);
 }
 
 /* Copies a byte from user addresses USRC to kernel address DST. */
@@ -82,7 +84,7 @@ copy_in_string (const char *us)
 static void
 syscall_handler (struct intr_frame *f) 
 {
-  printf ("system call!\n");
+  //printf ("system call!\n");
   //thread_exit ();
 
   typedef int syscall_function (int, int, int);
@@ -120,7 +122,7 @@ syscall_handler (struct intr_frame *f)
   if (call_nr >= sizeof syscall_table / sizeof *syscall_table)
     thread_exit();
   sc = syscall_table + call_nr;
-  printf("syscall = %d\n\n", call_nr);
+  //printf("syscall = %d\n\n", call_nr);
 
   /* Get the system call arguments. */
   ASSERT (sc->arg_cnt <= sizeof args / sizeof *args);
@@ -299,12 +301,28 @@ sys_read(int fd, void *buffer, unsigned size)
 
   lock_acquire(&fs_lock);
   if (fd == STDIN_FILENO){
-    
+    for (i = 0; i < size; i++, buffer++){
+      *(char *)buffer = input_getc();
+    }
+    ans = i;
   }
   else if (fd == STDOUT_FILENO){
-    lock_release(&fs_lock);
-    return ans;
+    ans = -1;
   }
+  else{
+    struct file_descriptor *f;
+    f = find_file(fd);
+
+    if (f == NULL){
+      ans = -1;
+    }
+    else{
+      ans = file_read(f, buffer, size);
+    }
+  }
+
+  lock_release(&fs_lock);
+  return ans;
 }
 
 /*Writes size bytes from buffer to the open file fd. Returns the number of bytes actually
@@ -321,10 +339,31 @@ sys_read(int fd, void *buffer, unsigned size)
 int
 sys_write(int fd, const void *buffer, unsigned size)
 {
-  if (fd == 1){
+  int ans;
+
+  lock_acquire(&fs_lock);
+  if (fd == STDIN_FILENO){
     putbuf(buffer, size);
+    ans = size;
   }
-  return 0;
+  else if (fd == STDOUT_FILENO){
+    ans = -1;
+  }
+  else{
+    struct file_descriptor * f;
+
+    f = find_file(fd);
+
+    if (f == NULL){
+      ans = -1;
+    }
+    else{
+      ans = file_write(f, buffer, size);
+    }
+  }
+
+  lock_release(&fs_lock);
+  return ans;
 }
 
 /*Changes the next byte to be read or written in open file fd to position, expressed in bytes 

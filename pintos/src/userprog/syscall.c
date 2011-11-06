@@ -292,8 +292,19 @@ sys_filesize(int fd)
 int
 sys_read(int fd, void *buffer, unsigned size)
 {
-  printf("sys_read\n");
-  return -1;
+  struct file * f;
+  int i, ans;
+
+  ans = 0;
+
+  lock_acquire(&fs_lock);
+  if (fd == STDIN_FILENO){
+    
+  }
+  else if (fd == STDOUT_FILENO){
+    lock_release(&fs_lock);
+    return ans;
+  }
 }
 
 /*Writes size bytes from buffer to the open file fd. Returns the number of bytes actually

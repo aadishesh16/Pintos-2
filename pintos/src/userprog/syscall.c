@@ -284,7 +284,7 @@ find_file(int fd){
 
   for (ls = list_begin(&cur->fds); ls != list_end(&cur->fds); ls = list_next(ls)){
     rf = list_entry(ls, struct file_descriptor, elem);
-    if (rf->handle = fd){
+    if (rf->handle == fd){
       return rf->file;
     }
   }
@@ -434,7 +434,6 @@ void
 sys_close(int fd)
 {
   struct file * f;
-  struct list_elem * e;
   f = find_file(fd);
 
   if(f == NULL)

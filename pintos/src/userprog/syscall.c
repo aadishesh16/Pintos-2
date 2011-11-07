@@ -184,6 +184,10 @@ pid_t
 sys_exec(const char *cmd_line)
 {
   int ans = -1;
+
+  if(!cmd_line || is_user_vaddr(cmd_line))
+    return ans;
+  
   lock_acquire(&fs_lock);
   
   char * file = copy_in_string(cmd_line);

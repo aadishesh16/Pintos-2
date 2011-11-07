@@ -33,6 +33,9 @@ void sys_seek(int fd, unsigned position);
 unsigned sys_tell(int fd);
 void sys_close(int fd);
 
+struct file *
+find_file(int fd);
+
 
 void
 syscall_init (void) 
@@ -297,7 +300,6 @@ sys_filesize(int fd)
 {
   int size;
   struct file * f;
-  struct list_elem * ls;
 
   // look through some file list to find open file?
   // then set equal to file descriptor and find size
@@ -418,14 +420,16 @@ unsigned
 sys_tell(int fd)
 {
   struct file * f;
+  unsigned i;
 
   f = find_file(fd);
 
-  if (f == NULL) return;
+  if (f == NULL) return -1;
 
   lock_acquire(&fs_lock);
-  file_tell(f);
+  i = file_tell(f);
   lock_release(&fs_lock);
+  return i;
 }
 
 /*Closes file descriptor fd. Exiting or terminating a process implicitly closes all its 

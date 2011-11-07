@@ -84,6 +84,21 @@ start_process (void * execp)
 
   success = load (exec->file_name, &if_.eip, &if_.esp);
 
+  if (success)
+  {
+    exec->wait_status = thread_current()->wait_status = malloc(sizeof *exec->wait_status);
+    success = exec->wait_status != NULL;
+  }
+
+  if (success)
+  {
+    lock_init(&exec->wait_status->lock);
+    exec->wait_status->ref_count = 2;
+    exec->wait_status->tid = thread_current()->tid;
+    exec->wait_status->exit = -1;
+    sema_init(&exec->wait_status->dead, 0);
+  }
+
   /* If load failed, quit. */
   exec->success = success;
   sema_up(&exec->load_done);

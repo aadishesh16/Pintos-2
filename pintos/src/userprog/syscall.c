@@ -12,6 +12,7 @@
 #include <string.h>
 #include "devices/shutdown.h"
 #include "devices/input.h"
+#include "process.h"
 
 static void syscall_handler (struct intr_frame *);
 
@@ -278,7 +279,7 @@ find_file(int fd){
   for (ls = list_begin(&cur->fds); ls != list_end(&cur->fds); ls = list_next(ls)){
     rf = list_entry(ls, struct file_descriptor, elem);
     if (rf->handle = fd){
-      return rf;
+      return rf->file;
     }
   }
   return NULL;
@@ -289,7 +290,7 @@ int
 sys_filesize(int fd)
 {
   int size;
-  struct file_descriptor * f;
+  struct file * f;
   struct list_elem * ls;
 
   // look through some file list to find open file?
@@ -367,7 +368,7 @@ sys_write(int fd, const void *buffer, unsigned size)
     ans = -1;
   }
   else{
-    struct file_descriptor * f;
+    struct file * f;
 
     f = find_file(fd);
 
@@ -394,7 +395,7 @@ sys_write(int fd, const void *buffer, unsigned size)
 void
 sys_seek(int fd, unsigned position)
 {
-  struct file_descriptor * f;
+  struct file * f;
 
   f = find_file(fd);
 
@@ -411,7 +412,7 @@ sys_seek(int fd, unsigned position)
 unsigned
 sys_tell(int fd)
 {
-  struct file_descriptor * f;
+  struct file * f;
 
   f = find_file(fd);
 
@@ -427,7 +428,7 @@ sys_tell(int fd)
 void
 sys_close(int fd)
 {
-  struct file_descriptor * f;
+  struct file * f;
   struct list_elem * e;
   f = find_file(fd);
 

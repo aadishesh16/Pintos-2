@@ -615,6 +615,7 @@ init_thread (struct thread *t, const char *name, int priority)
   t->wait_status = &t->w;
   list_init(&t->children);
   sema_init(&t->wait_status->dead, 0);
+  list_init(&t->fds);
 
   t->magic = THREAD_MAGIC;
   // Initialize semaphore

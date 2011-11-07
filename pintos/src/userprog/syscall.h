@@ -11,8 +11,6 @@ void syscall_init (void);
 int
 sys_open(const char *ufile);
 
-struct lock fs_lock;
-
 struct file_descriptor
 {
   int handle;

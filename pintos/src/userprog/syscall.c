@@ -36,6 +36,7 @@ void sys_close(int fd);
 struct file *
 find_file(int fd);
 
+static struct lock fs_lock;
 
 void
 syscall_init (void) 

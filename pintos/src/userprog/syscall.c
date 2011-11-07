@@ -13,6 +13,8 @@
 #include "devices/shutdown.h"
 #include "devices/input.h"
 #include "process.h"
+#include "userprog/process.h"
+#include "userprog/pagedir.h"
 
 static void syscall_handler (struct intr_frame *);
 
@@ -118,6 +120,10 @@ syscall_handler (struct intr_frame *f)
   const struct syscall *sc;
   unsigned call_nr;
   int args[3];
+
+  if (!(f->esp < PHYS_BASE && (pagedir_get_page (thread_current ()->pagedir, f->esp) != NULL))){
+    thread_exit();
+  }
   /* Get the system call. */
   copy_in (&call_nr, f->esp, sizeof call_nr);
   if (call_nr >= sizeof syscall_table / sizeof *syscall_table)
@@ -328,7 +334,6 @@ sys_read(int fd, void *buffer, unsigned size)
     ans = -1;
   }
   else{
-    struct file_descriptor *f;
     f = find_file(fd);
 
     if (f == NULL){

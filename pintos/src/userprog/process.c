@@ -17,6 +17,7 @@
 #include "threads/palloc.h"
 #include "threads/thread.h"
 #include "threads/vaddr.h"
+#include "threads/malloc.h"
 
 static thread_func start_process NO_RETURN;
 static bool load (const char *cmdline, void (**eip) (void), void **esp);
@@ -144,7 +145,6 @@ process_exit (void)
 {
   struct thread *cur = thread_current ();
   uint32_t *pd;
-  struct list_elem * e;
 
   printf("%s: exit(%d)\n", cur->name, cur->wait_status->exit);
   sema_up(&cur->wait_status->dead);
@@ -265,7 +265,7 @@ load (const char *file_name, void (**eip) (void), void **esp)
   off_t file_ofs;
   bool success = false;
   int i;
-  char *commandName, *save_ptr, * argtok, *savearg[256];
+  char *save_ptr, * argtok, *savearg[256];
 
   char * fileWin = palloc_get_page(0);
   strlcpy(fileWin, file_name, PGSIZE);

@@ -61,7 +61,7 @@ put_user (uint8_t *udst, uint8_t byte)
 {
   int eax;
   asm ("movl $1f, %%eax; movb %b2, %0; 1:"
-        : "=n" (*udst), "=&a" (eax) : "q" (byte));
+           : "=m" (*udst), "=&a" (eax) : "q" (byte));
   return eax != 0;
 }
 

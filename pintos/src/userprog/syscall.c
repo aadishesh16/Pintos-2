@@ -198,9 +198,11 @@ sys_exec(const char *cmd_line)
   
   char * file = copy_in_string(cmd_line);
   ans = process_execute(file);
-  palloc_free_page(file);
+  //palloc_free_page(file);
   
   lock_release(&fs_lock);
+
+  palloc_free_page(file);
 
   return ans;
 }

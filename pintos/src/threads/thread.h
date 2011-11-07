@@ -137,6 +137,8 @@ struct thread
     /* file descriptors*/
     struct list fds;
 
+    struct file * save;
+
     /* wait status */
     struct wait_status * wait_status;
     struct wait_status w;

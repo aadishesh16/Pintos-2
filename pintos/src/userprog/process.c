@@ -146,6 +146,7 @@ process_exit (void)
   struct thread *cur = thread_current ();
   uint32_t *pd;
 
+  file_close(cur->save);
   printf("%s: exit(%d)\n", cur->name, cur->wait_status->exit);
   sema_up(&cur->wait_status->dead);
 
@@ -278,13 +279,13 @@ load (const char *file_name, void (**eip) (void), void **esp)
 
   /* Open executable file. */
   // Pass in command name
-  file = filesys_open (t->name);
+  t->save = file = filesys_open (t->name);
   if (file == NULL) 
     {
       printf ("load: %s: open failed\n", file_name);
       goto done; 
     }
-
+  file_deny_write(t->save);
   /* Read and verify executable header. */
   if (file_read (file, &ehdr, sizeof ehdr) != sizeof ehdr
       || memcmp (ehdr.e_ident, "\177ELF\1\1\1", 7)
@@ -404,7 +405,7 @@ load (const char *file_name, void (**eip) (void), void **esp)
  done:
   /* We arrive here whether the load is successful or not. */
   palloc_free_page(fileWin);
-  file_close (file);
+  //file_close (file);
   return success;
 }
 

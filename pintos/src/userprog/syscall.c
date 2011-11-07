@@ -438,7 +438,10 @@ sys_tell(int fd)
 
   f = find_file(fd);
 
-  if (f == NULL) return -1;
+  if (f == NULL) {
+    thread_exit();
+    return -1;
+  }
 
   lock_acquire(&fs_lock);
   i = file_tell(f);
@@ -451,14 +454,19 @@ sys_tell(int fd)
 void
 sys_close(int fd)
 {
-  struct file * f;
+  struct file * f = NULL;
   f = find_file(fd);
 
-  if(f == NULL)
+  if(f == NULL) {
+    thread_exit();
     return;
+  }
+  else {
+    //remove the file descriptor.
+  }
 
   lock_acquire(&fs_lock);
   file_close(f);
-  free(f);
+  //free(f);
   lock_release(&fs_lock);
 }

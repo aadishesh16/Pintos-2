@@ -51,7 +51,7 @@ get_user(uint8_t * dst, const uint8_t *usrc)
 {
   int eax;
   asm ("movl $1f, %%eax; movb %2, %%al; movb %%al, %0; 1:"
-        : "=m" (*dst), "=%a" (eax) : "m" (*usrc));
+           : "=m" (*dst), "=&a" (eax) : "m" (*usrc));
   return eax != 0;
 }
 

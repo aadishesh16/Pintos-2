@@ -423,7 +423,7 @@ sys_seek(int fd, unsigned position)
   if(f == NULL)
     return;
 
-  lock_acquire(&fs_lock);
+  lock_release(&fs_lock);
   file_seek(f, position);
   lock_release(&fs_lock);
 }
@@ -455,6 +455,7 @@ void
 sys_close(int fd)
 {
   struct file * f = NULL;
+
   f = find_file(fd);
 
   if(f == NULL) {
@@ -463,6 +464,16 @@ sys_close(int fd)
   }
   else {
     //remove the file descriptor.
+    struct list_elem * ls;
+    struct thread * cur = thread_current();
+    struct file_descriptor * rf;
+    
+    for (ls = list_begin(&cur->fds); ls != list_end(&cur->fds); ls = list_next(ls)){
+      rf = list_entry(ls, struct file_descriptor, elem);
+      if (rf->handle == fd){
+	list_remove(&rf->elem);
+      }
+    }
   }
 
   lock_acquire(&fs_lock);

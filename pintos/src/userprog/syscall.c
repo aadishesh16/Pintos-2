@@ -191,7 +191,7 @@ sys_exec(const char *cmd_line)
 {
   int ans = -1;
 
-  if(!cmd_line || is_user_vaddr(cmd_line))
+  if(!cmd_line || !is_user_vaddr(cmd_line))
     return ans;
   
   lock_acquire(&fs_lock);
@@ -423,7 +423,7 @@ sys_seek(int fd, unsigned position)
   if(f == NULL)
     return;
 
-  lock_release(&fs_lock);
+  lock_acquire(&fs_lock);
   file_seek(f, position);
   lock_release(&fs_lock);
 }
@@ -468,15 +468,16 @@ sys_close(int fd)
     struct thread * cur = thread_current();
     struct file_descriptor * rf;
     
+    lock_acquire(&fs_lock);
     for (ls = list_begin(&cur->fds); ls != list_end(&cur->fds); ls = list_next(ls)){
       rf = list_entry(ls, struct file_descriptor, elem);
       if (rf->handle == fd){
-	list_remove(&rf->elem);
+	      list_remove(&rf->elem);
       }
     }
   }
 
-  lock_acquire(&fs_lock);
+  //lock_acquire(&fs_lock);
   file_close(f);
   //free(f);
   lock_release(&fs_lock);

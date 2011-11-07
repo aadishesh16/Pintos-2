@@ -451,7 +451,7 @@ sys_tell(int fd)
 void
 sys_close(int fd)
 {
-  /*struct file * f;
+  struct file * f;
 
   f = find_file(fd);
 
@@ -460,25 +460,6 @@ sys_close(int fd)
 
   lock_acquire(&fs_lock);
   file_close(f);
-  free(f);
-  lock_release(&fs_lock);*/
-
-  struct thread *cur = thread_current ();
-  struct list_elem *e;
-
-  lock_acquire (&fs_lock);
-
-  for (e = list_begin(&cur->fds); e != list_end(&cur->fds); e = list_next(e))
-  {
-    struct file_descriptor *f = list_entry(e, struct file_descriptor, elem);
-    if (f->handle == fd)
-    {
-      file_close(f->file);
-      list_remove(e);        // MLN -- this is the part missing in your version ;-)
-      //free(fd);
-      break;
-    }
-  }
-
-  lock_release (&fs_lock);
+  //free(f);
+  lock_release(&fs_lock);
 }

@@ -418,12 +418,12 @@ sys_seek(int fd, unsigned position)
 {
   struct file * f;
 
-  lock_acquire(&fs_lock);
   f = find_file(fd);
 
   if(f == NULL)
     return;
 
+  lock_release(&fs_lock);
   file_seek(f, position);
   lock_release(&fs_lock);
 }
@@ -436,11 +436,11 @@ sys_tell(int fd)
   struct file * f;
   unsigned i;
 
-  lock_acquire(&fs_lock);
   f = find_file(fd);
 
   if (f == NULL) return -1;
 
+  lock_acquire(&fs_lock);
   i = file_tell(f);
   lock_release(&fs_lock);
   return i;
@@ -451,15 +451,34 @@ sys_tell(int fd)
 void
 sys_close(int fd)
 {
-  struct file * f;
+  /*struct file * f;
 
-  lock_acquire(&fs_lock);
   f = find_file(fd);
 
   if(f == NULL)
     return;
 
+  lock_acquire(&fs_lock);
   file_close(f);
   free(f);
-  lock_release(&fs_lock);
+  lock_release(&fs_lock);*/
+
+  struct thread *cur = thread_current ();
+  struct list_elem *e;
+
+  lock_acquire (&fs_lock);
+
+  for (e = list_begin(&cur->fds); e != list_end(&cur->fds); e = list_next(e))
+  {
+    struct file_descriptor *f = list_entry(e, struct file_descriptor, elem);
+    if (f->handle == fd)
+    {
+      file_close(f->file);
+      list_remove(e);        // MLN -- this is the part missing in your version ;-)
+      //free(fd);
+      break;
+    }
+  }
+
+  lock_release (&fs_lock);
 }

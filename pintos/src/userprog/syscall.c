@@ -418,12 +418,12 @@ sys_seek(int fd, unsigned position)
 {
   struct file * f;
 
+  lock_acquire(&fs_lock);
   f = find_file(fd);
 
   if(f == NULL)
     return;
 
-  lock_acquire(&fs_lock);
   file_seek(f, position);
   lock_release(&fs_lock);
 }
@@ -436,11 +436,11 @@ sys_tell(int fd)
   struct file * f;
   unsigned i;
 
+  lock_acquire(&fs_lock);
   f = find_file(fd);
 
   if (f == NULL) return -1;
 
-  lock_acquire(&fs_lock);
   i = file_tell(f);
   lock_release(&fs_lock);
   return i;
@@ -452,12 +452,13 @@ void
 sys_close(int fd)
 {
   struct file * f;
+
+  lock_acquire(&fs_lock);
   f = find_file(fd);
 
   if(f == NULL)
     return;
 
-  lock_acquire(&fs_lock);
   file_close(f);
   free(f);
   lock_release(&fs_lock);

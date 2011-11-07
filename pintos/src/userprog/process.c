@@ -117,7 +117,7 @@ process_wait (tid_t child_tid UNUSED)
   if(t != NULL){
     sema_down(&t->wait_status->dead);
     handle = t->wait_status->exit;
-    list_remove(&t->wait_status->elem);
+    //list_remove(&t->wait_status->elem);
   }
 
   return handle;
@@ -129,6 +129,7 @@ process_exit (void)
 {
   struct thread *cur = thread_current ();
   uint32_t *pd;
+  struct list_elem * e;
 
   printf("%s: exit(%d)\n", cur->name, cur->wait_status->exit);
   sema_up(&cur->wait_status->dead);
@@ -345,18 +346,14 @@ load (const char *file_name, void (**eip) (void), void **esp)
   if (!setup_stack (esp))
     goto done;
 
-  printf("Setup stack esp: %x\n\n\n", esp);
-
   i = 0;
   for (argtok = strtok_r(fileWin, " ", &save_ptr); argtok != NULL;
         argtok = strtok_r(NULL, " ", &save_ptr))
   {
     savearg[i] = argtok;
-    printf("savearg[%d] loop = %s\n", i, savearg[i]);
     i++;
   }
   int count = i;
-  printf("\n");
 
   //push address of string plus a null pointer on the stack
   //in right to left order
@@ -366,29 +363,23 @@ load (const char *file_name, void (**eip) (void), void **esp)
   uint32_t saveesp[256];
   for(;i>=0;i--){
     saveesp[i] = (uint32_t)stack_push(esp, savearg[i], (strlen(savearg[i]) + 1));
-    printf("savearg %s: %x\n", savearg[i], saveesp[i]);
   }
-  printf("\n\n");
+
   uint32_t  add;
   *esp = *esp - 4;
   // Push addresses onto stack
   //
   for(i = count - 1; i>=0; i--){
     stack_push(esp, &saveesp[i], sizeof(void *));
-    printf("esp %x: %x\n",*esp, saveesp[i]);
   }
 
   // argc
   // Catch the final address
   add = (uint32_t)*esp;
   stack_push(esp, &add, sizeof(void *));
-  printf("\nesp %x: %x\n", *esp, add);
   // argc (size)
   stack_push(esp, &count, sizeof(int));
-  printf("\nArg Count: %d\n", count);
   *esp = *esp - 4;
-
-  printf("\nesp: %x\n\n", *esp);
 
   /* Start address. */
   *eip = (void (*) (void)) ehdr.e_entry;

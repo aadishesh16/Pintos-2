@@ -159,6 +159,7 @@ sys_halt(void)
 void
 sys_exit(int status)
 {
+  thread_current()->wait_status->exit = status;
   thread_exit();
 }
 

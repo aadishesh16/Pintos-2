@@ -229,7 +229,10 @@ bool
 sys_create(const char *file, unsigned initial_size)
 {
   bool win;
-
+  if (file == NULL) {
+    thread_exit();
+    return false;
+  }
   lock_acquire(&fs_lock);
   win = filesys_create(file, initial_size);
   lock_release(&fs_lock);

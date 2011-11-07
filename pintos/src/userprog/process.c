@@ -37,6 +37,7 @@ process_execute (const char *file_name)
   char thread_name[15];
   char *save_ptr;
   tid_t tid;
+  char* temp;
   struct wait_status wait;
 
   /* Initialize exec_info */
@@ -48,7 +49,16 @@ process_execute (const char *file_name)
   /* Create a new thread to execute FILE_NAME;*/
   
   strlcpy(thread_name, file_name, sizeof thread_name);
-  strtok_r (thread_name, " ", &save_ptr);
+  temp = strtok_r (thread_name, " ", &save_ptr);
+
+  //this code is used to pass the exec-missing test.
+  struct file * f = filesys_open(temp);
+  if (f == NULL) {
+    return TID_ERROR;
+  } else {
+    file_close(f);
+  }
+
   sema_init(&exec.load_done, 0);
   tid = thread_create (thread_name, PRI_DEFAULT, start_process, &exec);
 

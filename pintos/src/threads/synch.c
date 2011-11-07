@@ -264,7 +264,10 @@ lock_release (struct lock *lock)
   // in our waiting list
   if(!list_empty(&lock->semaphore.waiters)){
     struct thread *thrd = list_entry (list_begin(&lock->semaphore.waiters), struct thread, elem);
-    list_remove(&thrd->donationElem);
+    
+    if (&thrd->donationElem != NULL && (&thrd->donationElem)->prev != NULL && (&thrd->donationElem)->next != NULL) {
+      list_remove(&thrd->donationElem);
+    }
     recompute_thread_priority(thrd);
     thrd->donee = NULL;
     thrd->wantsLock = NULL;

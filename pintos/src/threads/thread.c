@@ -610,7 +610,7 @@ init_thread (struct thread *t, const char *name, int priority)
   list_init(&t->donorList);
   t->priority = priority;
   t->base_priority = priority;
-
+  t->next_handle = 2;
 
   t->wait_status = &t->w;
   list_init(&t->children);

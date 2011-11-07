@@ -266,7 +266,7 @@ int
 sys_open(const char *ufile)
 {
   char *kfile = copy_in_string (ufile);
-  struct file_descriptor *fd;
+  struct file_descriptor *fd = NULL;
   int handle = -1;
 
   fd = malloc (sizeof *fd);

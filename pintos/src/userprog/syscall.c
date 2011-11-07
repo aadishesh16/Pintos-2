@@ -140,6 +140,11 @@ syscall_handler (struct intr_frame *f)
   memset(args, 0, sizeof args);
   copy_in (args, (uint32_t *) f->esp + 1, sizeof * args * sc->arg_cnt);
 
+
+  if(args[0] > PHYS_BASE || args[1] > PHYS_BASE || args[2] > PHYS_BASE) {
+    thread_exit();
+    return;
+  }
   /* Execute the system call, and set the return value. */
   f->eax = sc->func (args[0], args[1], args[2]);
 }
@@ -170,6 +175,7 @@ sys_halt(void)
 void
 sys_exit(int status)
 {
+
   thread_current()->wait_status->exit = status;
   thread_exit();
 }

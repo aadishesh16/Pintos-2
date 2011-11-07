@@ -172,18 +172,14 @@ sys_exit(int status)
 pid_t
 sys_exec(const char *cmd_line)
 {
-  int ans;
-
-  if(!cmd_line || !is_user_vaddr(cmd_line))
-  {
-    ans = -1;
-  }
-  else
-  {
-    lock_acquire(&fs_lock);
-    ans = process_execute(cmd_line);
-    lock_release(&fs_lock);
-  }
+  int ans = -1;
+  lock_acquire(&fs_lock);
+  
+  char * file = copy_in_string(cmd_line);
+  ans = process_execute(file);
+  palloc_free_page(file);
+  
+  lock_release(&fs_lock);
 
   return ans;
 }
@@ -201,9 +197,7 @@ sys_exec(const char *cmd_line)
 int
 sys_wait(pid_t pid)
 {
-  printf("sys_wait\n");
-  int wait = process_wait(pid);
-  return wait;
+  return process_wait(pid);
 }
 
 
@@ -214,7 +208,11 @@ bool
 sys_create(const char *file, unsigned initial_size)
 {
   bool win;
+
+  lock_acquire(&fs_lock);
   win = filesys_create(file, initial_size);
+  lock_release(&fs_lock);
+
   return win;
 }
 
@@ -224,14 +222,17 @@ sys_create(const char *file, unsigned initial_size)
 bool
 sys_remove(const char *file)
 {
-  if(!file){
-    return false;
-  }
-  if(!is_user_vaddr(file)){
-    sys_exit(-1);
-  }
-  return filesys_remove(file);
+  bool rmv;
+
+  lock_acquire(&fs_lock);
+
+  rmv = filesys_remove(file);
+
+  lock_release(&fs_lock);
+
+  return rmv;
 }
+
 
 /*Opens the file called file. Returns a nonnegative integer handle called a 
  * "file descriptor" (fd), or -1 if the file could not be opened.
@@ -297,7 +298,10 @@ sys_filesize(int fd)
 
   if (f == NULL)
     return -1; //break
+
+  lock_acquire(&fs_lock);
   size = file_length(f);
+  lock_release(&fs_lock);
   return size;
 }
 
@@ -396,7 +400,10 @@ sys_seek(int fd, unsigned position)
 
   if(f == NULL)
     return;
+
+  lock_acquire(&fs_lock);
   file_seek(f, position);
+  lock_release(&fs_lock);
 }
 
 /*Returns the position of the next byte to be read or written in open file fd, expressed 
@@ -404,13 +411,15 @@ sys_seek(int fd, unsigned position)
 unsigned
 sys_tell(int fd)
 {
-  struct file_descritor * f;
+  struct file_descriptor * f;
 
   f = find_file(fd);
 
-  if(f == NULL)
-    return;
-  return file_tell(f);
+  if (f == NULL) return;
+
+  lock_acquire(&fs_lock);
+  file_tell(f);
+  lock_release(&fs_lock);
 }
 
 /*Closes file descriptor fd. Exiting or terminating a process implicitly closes all its 
@@ -418,11 +427,15 @@ sys_tell(int fd)
 void
 sys_close(int fd)
 {
-  struct file_descripter * f;
+  struct file_descriptor * f;
+  struct list_elem * e;
   f = find_file(fd);
 
   if(f == NULL)
     return;
+
+  lock_acquire(&fs_lock);
   file_close(f);
   free(f);
+  lock_release(&fs_lock);
 }

@@ -17,6 +17,8 @@ Owen Praeger
 >> If you have any preliminary comments on your submission, notes for the
 >> TAs, or extra credit, please give them here.
 
+Please ignore the ._(filename) files within our source code, I think there is something wrong with our git branches but it should not bother the project when you do make check or make grade.
+
 >> Please cite any offline or online sources you consulted while
 >> preparing your submission, other than the Pintos documentation, course
 >> text, lecture notes, and course staff.
@@ -51,7 +53,12 @@ struct exec_info{
   struct wait_status *wait_status;
 };
 
-Each thread has it's own execute information. Within that struct, we have a boolean to check for success, a file name of the execution information, a semaphore to lock, and a wait_status. 
+Each thread has it's own execute information. Within that struct, we have a boolean to check for success, a file name of the execution information, a semaphore to lock, and a wait_status.
+
+/* children list */
+    struct list children;
+
+Each thread has a "children" list which can be used to retrieve a wait_status.  This retrieval is done within the find_thread function.
 
 ---- ALGORITHMS ----
 
@@ -121,7 +128,13 @@ We must first lock down the file system before we do anything with files. IF fd 
 >> for a system call that only copies 2 bytes of data?  Is there room
 >> for improvement in these numbers, and how much?
 
+Least number of page inspections is one. In which case we get a page head back. 
 
+Most page inspections would be 4096, under the circumstance that it is not continuous, where we have to check every address for valid access. Else, given the page is continuous, the greatest number would be two, where we check the start pointer and end pointer. 
+
+for 2 bytes of data:
+
+Least number of page inspections is one, like with one byte. The greatest number would be two, for the same reason as with one byte. 
 
 >> B5: Briefly describe your implementation of the "wait" system call
 >> and how it interacts with process termination.
@@ -153,6 +166,10 @@ In a write system call, we are taking a look at the integer handle that is being
 >> loading.  How does your code ensure this?  How is the load
 >> success/failure status passed back to the thread that calls "exec"?
 
+Within sys_exec, the validity of the pointer to the executable's name is verified, returning -1 if it fails the test.  Within process_execute, there is a test which makes sure that the executable's name refers to a valid file.  If the setting up of the stack fails at any point, this will cause a conditional statement to fail, ending the execution of the system call and resulting in -1 being returned. Furthermore, the exit status is initialized to -1 to ensure that if the exec call exits before it is intended to, the system call will ultimately return -1.
+
+Load/failure status is passed back to the thread that called exec through the use of the "exec_info->load_done" semaphore.  The calling thread will block at this semaphore until the child thread has finished loading.  
+
 >> B8: Consider parent process P with child process C.  How do you
 >> ensure proper synchronization and avoid race conditions when P
 >> calls wait(C) before C exits?  After C exits?  How do you ensure
@@ -160,16 +177,24 @@ In a write system call, we are taking a look at the integer handle that is being
 >> terminates without waiting, before C exits?  After C exits?  Are
 >> there any special cases?
 
+This synchronization is enforced through use of the "wait_status->dead" semaphore.  the wait_status for a thread is stored within that process's thread, and is added to the children list of that thread's parent.  When P calls wait before C exits, it will block on the sema_down(wait_status->dead) call in process_wait().  When C exits, it signals this semaphore, so that P may resume execution.  If C has already exited, then the semaphore has already been signaled, and P will not wait at all.  Any time a thread exits, it executes process_exit(), which signals the wait_status->dead semaphore for that thread and releases all of its resources.  In this way, the code ensures that all resources are freed whenever a thread terminates.
+
 ---- RATIONALE ----
 
 >> B9: Why did you choose to implement access to user memory from the
 >> kernel in the way that you did?
 
+The reason why we implemented access to user memory from the kernel so that the user would not be able to mess up kernel memory. For example, the user could pass in a null pointer or invalid pointer which could cause the entire operating system to crash or kernel panic. Also, we had to make sure that the user was not accessing kernel memory so they could not screw up things that they weren't allowed to touch.
+
 >> B10: What advantages or disadvantages can you see to your design
 >> for file descriptors?
 
+And advantage to using our file descriptor is that each FD has its own handle. Because of this, it makes it easy to find any given file descriptor within any given threads list of FD's. In general, file descriptors make it easy to access files. A disadvantage could be that a file descriptor does not give enough information about the given file, for example, in a larger operating system we might need more information about the file that is within a thread.
+
 >> B11: The default tid_t to pid_t mapping is the identity mapping.
 >> If you changed it, what advantages are there to your approach?
+
+We did not change it, throughout our design tid_t and pid_t are equivalent.
 
 			   SURVEY QUESTIONS
 			   ================

@@ -8,9 +8,9 @@
 
 >> Fill in the names of your group members.
 
-Brian Cain
-Carlos Salazar
-Owen Praeger
+FirstName LastName
+FirstName LastName
+FirstName LastName
 
 ---- PRELIMINARIES ----
 
@@ -30,52 +30,19 @@ Owen Praeger
 >> `struct' member, global or static variable, `typedef', or
 >> enumeration.  Identify the purpose of each in 25 words or less.
 
-/* thread wait status */
-struct wait_status{
-  struct list_elem elem;
-  struct lock lock;
-  int ref_count;
-
-  tid_t tid;
-  int exit;
-  struct semaphore dead;
-};
-
-Each process can spawn any number of children, but they must wait for them in any order and may even exit without having waited for some or all of their children. This struct is exactly that for each thread. 
-
-/* Exec info struct */
-struct exec_info{
-  bool success;
-  char * file_name;
-  struct semaphore load_done;
-  struct wait_status *wait_status;
-};
-
-Each thread has it's own execute information. Within that struct, we have a boolean to check for success, a file name of the execution information, a semaphore to lock, and a wait_status. 
-
 ---- ALGORITHMS ----
 
 >> A2: Briefly describe how you implemented argument parsing.  How do
 >> you arrange for the elements of argv[] to be in the right order?
 >> How do you avoid overflowing the stack page?
 
-
-The first thing that needed to happen was splitting up the file name that was passed in. This was required so that we could aquire each argument into an array. Once we got this array, we pushed each argument onto the stack in reverse order. With this push method, we returned the memory address. Similar to before, we passed the addresses onto the stack after arguments in the same reverse order. On the very end, we grabed onto argv and pushed argv and the argument count onto the stack. To get the 0 at the end, we decremented the stack pointer by 4 to generate the correct stack for argument passing. 
-
-
 ---- RATIONALE ----
 
 >> A3: Why does Pintos implement strtok_r() but not strtok()?
 
-strtok_r() modifies the passing in string, changing the dilimiters to null bytes. strtok does not do this.
-
 >> A4: In Pintos, the kernel separates commands into a executable name
 >> and arguments.  In Unix-like systems, the shell does this
 >> separation.  Identify at least two advantages of the Unix approach.
-
-One advantage would be that the shell could pass in the already broken up string into where the executable name and arguments are needed to be used. This will allow the kernel to do less work when attempting to do argument passing and will not have to worry about splitting up the string correctly. 
-
-Another advantage would be that once the shell passes in the executeable and arguments, the kernel would be able to just check to see if the executable is valid, and if it isn't it can return to prevent any errors.
 
 			     SYSTEM CALLS
 			     ============
@@ -86,33 +53,14 @@ Another advantage would be that once the shell passes in the executeable and arg
 >> `struct' member, global or static variable, `typedef', or
 >> enumeration.  Identify the purpose of each in 25 words or less.
 
-struct file_descriptor
-{
-  int handle;
-  struct file * file;
-  struct list_elem elem;
-};
-
-Each process has an independent set of file descriptors. File descriptors numbered at 0 and 1 are reserved for console, for example fd 0 = STDIN_FILENO and fd = 1 is STDOUT_FILENO.
-
 >> B2: Describe how file descriptors are associated with open files.
 >> Are file descriptors unique within the entire OS or just within a
 >> single process?
-
-Each file descriptor has a special handle for each single process, a file char name, and a list element. This allows each thread to have a list of file descriptors for each open file that it has going currently. File descriptors are unique within a single process of the OS.
 
 ---- ALGORITHMS ----
 
 >> B3: Describe your code for reading and writing user data from the
 >> kernel.
-
-For sys_read:
-
-We must first lock down the file system before doing any work with the files. We then must check to see what number fd is. If fd is 1 or 0, that is reserved for console. If fd is STDIN, we must loop for 0 to size ande get each character from the user. If fd is STDOUT, we will return -1. Otherwise, fd > 1, we will file the file with the specific FD handle and then file read and set ans to what file read returns., unlock the file system and return ans.
-
-For sys_write:
-
-We must first lock down the file system before we do anything with files. IF fd is STDOUT, we can put buff our buffer and size, and make our answer to return equal to size. If fd is equal to STDIN, we set our return to -1. Otherwise, we must find the specific file with the handle equal to fd. If the file isn't null, call file write with the specific file, buffer, and size and have that return equal to our return variable. We then unlock the file system and return our answer.
 
 >> B4: Suppose a system call causes a full page (4,096 bytes) of data
 >> to be copied from user space into the kernel.  What is the least
@@ -121,12 +69,8 @@ We must first lock down the file system before we do anything with files. IF fd 
 >> for a system call that only copies 2 bytes of data?  Is there room
 >> for improvement in these numbers, and how much?
 
-
-
 >> B5: Briefly describe your implementation of the "wait" system call
 >> and how it interacts with process termination.
-
-My implimentation of the wait calls process wait, which waits for a child rpocess pid and retireves the child's exit status. If the PID is still alive it waits until the pid terminates and then returns the status that pid pass to exit. Else if pid did not call exit, but was terminated by the kernel, wait will return -1. 
 
 >> B6: Any access to user program memory at a user-specified address
 >> can fail due to a bad pointer value.  Such accesses must cause the
@@ -141,10 +85,6 @@ My implimentation of the wait calls process wait, which waits for a child rpoces
 >> allocated resources (locks, buffers, etc.) are freed?  In a few
 >> paragraphs, describe the strategy or strategies you adopted for
 >> managing these issues.  Give an example.
-
-One of the things our project does to ensure that a user does not give pintos a bad pointer is check to see if the file pointers esp is not less than the PHYS_BASE along with checking to see that the thread currents page with the file pointers esp is null. If this returns true, we force the thread to exit.
-
-In a write system call, we are taking a look at the integer handle that is being passed in. If the user passes in an invalid file handle, the find file function will return a null file. Within write, we will set the exit code to -1 and the write will not happen. This prevents the user from passing in invalid file pointers which could cause kernel panics within the operating system.
 
 ---- SYNCHRONIZATION ----
 

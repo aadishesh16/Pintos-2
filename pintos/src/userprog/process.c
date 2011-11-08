@@ -33,8 +33,9 @@ void release_child(struct thread * t);
 tid_t
 process_execute (const char *file_name) 
 {
+  //printf("process_execute file_name = %s\n", file_name);
   struct exec_info exec;
-  char thread_name[15];
+  char thread_name[16];
   char *save_ptr;
   tid_t tid;
   char* temp;
@@ -53,28 +54,43 @@ process_execute (const char *file_name)
 
   //this code is used to pass the exec-missing test.
   struct file * f = filesys_open(temp);
+      //printf("process_execute file_name = %s\n", temp);
+
   if (f == NULL) {
+      //printf("process_execute NULL file\n");
     return TID_ERROR;
   } else {
     file_close(f);
   }
 
-  sema_init(&exec.load_done, 0);
-  tid = thread_create (thread_name, PRI_DEFAULT, start_process, &exec);
-
   /* Starts a new thread running a user program loaded from
    * FILENAME. The new thread may be schedule (and may even exit)
    * before process_execute() returns. Returns the new process's
    * thread id, or TID_ERROR if the thread cannot be created. */
+  //printf("process_execute creating child thread\n");
+
+  tid = thread_create (thread_name, PRI_DEFAULT, start_process, &exec);
+
+  //printf("process.c/process_execute: tid returned from thread_create = %d\n", tid);
+  //printf("process_execute thread created\n");
+
   if (tid != TID_ERROR)
   {
+    //printf("process.c/process_execute: tid before sema_down = %d\n", tid);
     sema_down (&exec.load_done);
-    if (exec.success)
+    //printf("process.c/process_execute: tid after sema_down = %d\n", tid);
+    if (exec.success){
       list_push_back (&thread_current ()->children,
                         &exec.wait_status->elem);
-    else
+      //printf("process.c/process_execute: tid after list_push_back = %d\n", tid);
+    }
+    else {
+      //printf("process_execute TID_ERROR\n");
       tid = TID_ERROR;
+	}
   }
+  //printf("\nprocess_execute returning tid: %d\n", tid);
+  //printf("process_execute current thread: %s\n\n", thread_current()->name);
   return tid;
 }
 
@@ -95,18 +111,21 @@ start_process (void * execp)
 
   success = load (exec->file_name, &if_.eip, &if_.esp);
 
+  /* allocate wait status */
   if (success)
   {
-    exec->wait_status = thread_current()->wait_status = malloc(sizeof *exec->wait_status);
+    exec->wait_status = thread_current()->wait_status = malloc(sizeof (struct wait_status));
     success = exec->wait_status != NULL;
   }
 
+  /* initialize wait status -- is this wrong??*/
   if (success)
   {
-    lock_init(&exec->wait_status->lock);
+    //lock_init(&exec->wait_status->lock);
     exec->wait_status->ref_count = 2;
     exec->wait_status->tid = thread_current()->tid;
     exec->wait_status->exit = -1;
+     //printf("start_process: thread_current()->wait_status->exit: %d\n", thread_current()->wait_status->exit);
     sema_init(&exec->wait_status->dead, 0);
   }
 
@@ -114,8 +133,10 @@ start_process (void * execp)
   exec->success = success;
   sema_up(&exec->load_done);
 
-  if (!success) 
+  if (!success) {
+    //printf("process_execute %s !success\n", exec->file_name);
     thread_exit ();
+	}
 
   /* Start the user process by simulating a return from an
      interrupt, implemented by intr_exit (in
@@ -134,17 +155,31 @@ start_process (void * execp)
    been successfully called for the given TID, returns -1
    immediately, without waiting. */
 int
-process_wait (tid_t child_tid UNUSED) 
+process_wait (tid_t child_tid) 
 {
+  //printf("process_wait current thread: %s\n", thread_current()->name);
+  //printf("process_wait child_tid: %d\n\n", child_tid);
   int handle = -1;
-  struct thread *t;
+  //wrong.
+  struct wait_status *t;
   t = find_thread(child_tid);
 
   if(t != NULL){
-    sema_down(&t->wait_status->dead);
-    handle = t->wait_status->exit;
-    //list_remove(&t->wait_status->elem);
+    //printf("process_wait sema_down current thread: %s\n", thread_current()->name);
+    sema_down(&t->dead);
+    //printf("process_wait after sema_down current thread: %s\n", thread_current()->name);
+	//debug_backtrace_all();
+
+
+    //printf("process_wait t->wait_status->exit: %d\n", t->exit);
+
+    handle = t->exit;
+    //printf("process_wait handle: %d\n", handle);
+    list_remove(&t->elem);
   }
+
+  //for(;;);
+  //printf("\nprocess_wait exiting with handle: %d\n\n", handle);
 
   return handle;
 }

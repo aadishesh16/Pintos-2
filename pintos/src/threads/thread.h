@@ -106,19 +106,19 @@ struct thread
     /* Owned by thread.c. */
     struct semaphore sema;
     
-    int64_t wakeup;                     // Wakeup time
+    //int64_t wakeup;                     // Wakeup time
     tid_t tid;                          /* Thread identifier. */
     enum thread_status status;          /* Thread state. */
     char name[16];                      /* Name (for debugging purposes). */
     uint8_t *stack;                     /* Saved stack pointer. */
     int priority;                       /* Priority. */
-    int base_priority;                  /* stores the original priority if a donated priority exists */
-    struct thread *donee;               /* the thread that this thread donated its priority to */
-    struct list donorList;              /* A list of priority donors */
-    struct lock *wantsLock;              /* the lock the thread is trying to get */
+    //int base_priority;                  /* stores the original priority if a donated priority exists */
+    // struct thread *donee;               /* the thread that this thread donated its priority to */
+    //struct list donorList;              /* A list of priority donors */
+    //struct lock *wantsLock;              /* the lock the thread is trying to get */
     struct list_elem allelem;           /* List element for all threads list. */
-    struct list_elem donationElem;      /* list element for donor lists */
-    struct list_elem waitelem;          // List of threads that are waiting
+    //struct list_elem donationElem;      /* list element for donor lists */
+    //struct list_elem waitelem;          // List of threads that are waiting
 
     /* Shared between thread.c and synch.c. */
     struct list_elem elem;              /* List element. */
@@ -185,26 +185,7 @@ void thread_set_nice (int);
 int thread_get_recent_cpu (void);
 int thread_get_load_avg (void);
 
-void donate_priority(struct thread*, struct thread *);
-
-bool
-thread_higher_priority (const struct list_elem *a_,
-                        const struct list_elem *b_,
-                         void *aux UNUSED);
-
-bool
-thread_lower_priority (const struct list_elem *a_,
-                        const struct list_elem *b_,
-                         void *aux UNUSED);
-
-void thread_yield_to_higher_priority (void);
-
-bool
-thread_donor_priority(const struct list_elem *a_,
-                        const struct list_elem *b_,
-                          void *aux UNUSED);
-
-struct thread *
+struct wait_status *
 find_thread(tid_t tid);
 
 #endif /* threads/thread.h */

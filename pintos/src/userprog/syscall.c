@@ -190,18 +190,21 @@ pid_t
 sys_exec(const char *cmd_line)
 {
   int ans = -1;
-
-  if(!cmd_line || !is_user_vaddr(cmd_line))
+  //printf("sys_exec: %s\n", cmd_line);
+  if(!cmd_line || !is_user_vaddr(cmd_line)) {
+     //printf("sys_exec: fail");
     return ans;
-  
-  lock_acquire(&fs_lock);
+  }
+  //ASSERT(&fs_lock != NULL);
   
   char * file = copy_in_string(cmd_line);
+
+  lock_acquire(&fs_lock);  
   ans = process_execute(file);
-  //palloc_free_page(file);
-  
+	//printf("sys_exec releasing lock\n");
   lock_release(&fs_lock);
 
+  //printf("sys_exec finished, ans: %d\n", ans);
   palloc_free_page(file);
 
   return ans;
@@ -220,6 +223,7 @@ sys_exec(const char *cmd_line)
 int
 sys_wait(pid_t pid)
 {
+  //printf("sys_wait pid: %d\n\n", pid);
   return process_wait(pid);
 }
 

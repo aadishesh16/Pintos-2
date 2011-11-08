@@ -17,16 +17,12 @@
 #error TIMER_FREQ <= 1000 recommended
 #endif
 
-/* Wait List */
-static struct list wait_list;
-
 /* Number of timer ticks since OS booted. */
 static int64_t ticks;
 
 /* Number of loops per timer tick.
    Initialized by timer_calibrate(). */
 static unsigned loops_per_tick;
-
 
 static intr_handler_func timer_interrupt;
 static bool too_many_loops (unsigned loops);
@@ -41,7 +37,6 @@ timer_init (void)
 {
   pit_configure_channel (0, 2, TIMER_FREQ);
   intr_register_ext (0x20, timer_interrupt, "8254 Timer");
-  list_init(&wait_list);
 }
 
 /* Calibrates loops_per_tick, used to implement brief delays. */
@@ -91,30 +86,14 @@ timer_elapsed (int64_t then)
 
 /* Sleeps for approximately TICKS timer ticks.  Interrupts must
    be turned on. */
-/* We need to edit this function!!!
-   To block the thread, use sema_down */
 void
 timer_sleep (int64_t ticks) 
 {
   int64_t start = timer_ticks ();
-  int64_t wakeuptime = start + ticks;
 
-  ASSERT (intr_get_level () == INTR_ON); // Interrupts must be turned on
- 
-  intr_disable();
-  struct thread *t = thread_current();
-  t->wakeup = wakeuptime;
-
-  // Add thread to wait list
-  list_push_back(&wait_list, &t->waitelem);
-
-  sema_down(&t->sema);
-
-  intr_enable();
-
-  // this is old code and should be commented out
-  //while (timer_elapsed (start) < ticks) 
-    //thread_yield ();
+  ASSERT (intr_get_level () == INTR_ON);
+  while (timer_elapsed (start) < ticks) 
+    thread_yield ();
 }
 
 /* Sleeps for approximately MS milliseconds.  Interrupts must be
@@ -186,29 +165,13 @@ timer_print_stats (void)
 {
   printf ("Timer: %"PRId64" ticks\n", timer_ticks ());
 }
-
+
 /* Timer interrupt handler. */
-// while loop  checking if thread should be woken up in waitlist
-// if their wakeuptime < ticks, they should be woken up
-// use a while to check if threads need to be woken up
 static void
 timer_interrupt (struct intr_frame *args UNUSED)
 {
   ticks++;
   thread_tick ();
-  
-  struct list_elem *e;
-  for (e = list_begin(&wait_list); e != list_end (&wait_list); e = list_next (e))
-  {
-    struct thread *t = list_entry (e, struct thread, waitelem);
-    if (t->wakeup <= timer_ticks())
-    {
-      // Unblocking the thread
-      sema_up(&t->sema);
-      // Removing thread from the wait list
-      list_remove(&t->waitelem);
-    }
-  }
 }
 
 /* Returns true if LOOPS iterations waits for more than one timer
